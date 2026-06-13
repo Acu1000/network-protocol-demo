@@ -43,4 +43,11 @@ public readonly record struct ConnectRequestPacket
         
         BitConverter.TryWriteBytes(buffer.Slice(1, 8), LoginToken);
     }
+    
+    public byte[] ToBytes()
+    {
+        byte[] data = new byte[PacketMinSize];
+        WriteBytesTo(data);
+        return data;
+    }
 }

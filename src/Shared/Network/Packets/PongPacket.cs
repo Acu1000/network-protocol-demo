@@ -4,17 +4,17 @@ using System.Runtime.InteropServices;
 namespace Protocol.Shared.Network.Packets;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public readonly record struct PingPacket
+public readonly record struct PongPacket
 {
     public const int PacketMinSize = 1;
     
-    public readonly PacketType PacketType = PacketType.Ping;
+    public readonly PacketType PacketType = PacketType.Pong;
     
-    public PingPacket()
+    public PongPacket()
     {
     }
-
-    public static bool TryParse(ReadOnlySpan<byte> data, out PingPacket packet)
+    
+    public static bool TryParse(ReadOnlySpan<byte> data, out PongPacket packet)
     {
         throw new NotImplementedException();
     }
@@ -26,9 +26,9 @@ public readonly record struct PingPacket
             throw new ArgumentOutOfRangeException(nameof(buffer));
         }
         
-        buffer[0] = (byte)PacketType.Ping;
+        buffer[0] = (byte)PacketType.Pong;
     }
-
+    
     public byte[] ToBytes()
     {
         byte[] data = new byte[PacketMinSize];

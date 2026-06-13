@@ -9,18 +9,22 @@ using Protocol.Shared.Network.Packets;
 
 namespace Protocol.Shared.Network;
 
-public abstract class BaseUdpHandler
+public class UdpHandler
 {
     private const int BufferSize = 1024;
     private const int ChannelCapacity = 1024;
     
     private readonly Socket _socket = new(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+    private readonly IPEndPoint _localEndPoint;
     
     private readonly Channel<RawPacket> _channel; // For passing data from listener thread to main thread
     protected ChannelReader<RawPacket> Reader => _channel.Reader;
 
-    protected BaseUdpHandler()
+    public UdpHandler(int localPort)
     {
+        _localEndPoint = new IPEndPoint(IPAddress.Any, localPort);
+        
         _channel = Channel.CreateBounded<RawPacket>(new BoundedChannelOptions(ChannelCapacity)
         {
             SingleReader = true,
@@ -29,9 +33,9 @@ public abstract class BaseUdpHandler
         });
     }
 
-    protected void StartListening(EndPoint endPoint)
+    public void StartListening()
     {
-        _socket.Bind(endPoint);
+        _socket.Bind(_localEndPoint);
 
         Task.Run(async () => await ListenAsync());
     }
@@ -59,8 +63,24 @@ public abstract class BaseUdpHandler
             }
         }
     }
+    
+    public void RoutePackets(PacketRouter router)
+    {
+        while (Reader.TryRead(out RawPacket rawPacket))
+        {
+            try
+            {
+                ReadOnlySpan<byte> packetSpan = rawPacket.PoolBuffer.AsSpan(0, rawPacket.NumBytes);
+                router.Route(packetSpan, rawPacket.SourceEndPoint);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(rawPacket.PoolBuffer);
+            }
+        }
+    }
 
-    protected void Send(ReadOnlyMemory<byte> data, EndPoint endPoint)
+    public void Send(ReadOnlyMemory<byte> data, EndPoint endPoint)
     {
         Task.Run(async() => await SendAsync(data, endPoint));
     }

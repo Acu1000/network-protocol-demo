@@ -23,15 +23,13 @@ public class PacketRouter
             data.Slice(0, 1)
         )[0];
         
-        GD.Print(packetType.ToString());
-
         if (_packetHandlers.TryGetValue(packetType, out var handler))
         {
             handler.Invoke(data, sourceEndPoint);
         }
         else
         {
-            GD.PrintErr($"CLIENT: Unhandled packet: {packetType.ToString()}");
+            GD.PrintErr($"Unhandled packet: {packetType.ToString()}");
         }
     }
 
