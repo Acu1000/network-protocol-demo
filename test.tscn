@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://br51rwytvv2j3"]
 
-[ext_resource type="Script" uid="uid://bci415mvqx666" path="res://src/Client/TestClientNode.cs" id="1_8uh7m"]
-[ext_resource type="Script" uid="uid://okg0udhwnatp" path="res://src/Server/TestServerNode.cs" id="2_6uqi0"]
+[ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_8uh7m"]
+[ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="2_6uqi0"]
 
 [node name="Node2D" type="Node2D" unique_id=1271104422]
 

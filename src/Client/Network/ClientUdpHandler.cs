@@ -22,7 +22,7 @@ public class ClientUdpHandler : BaseUdpHandler
         Send(data, _serverEndPoint);
     }
     
-    public void RoutePackets(ClientPacketRouter router)
+    public void RoutePackets(PacketRouter router)
     {
         while (Reader.TryRead(out RawPacket rawPacket))
         {

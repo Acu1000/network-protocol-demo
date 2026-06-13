@@ -15,7 +15,7 @@ public class ServerUdpHandler : BaseUdpHandler
         _localEndPoint = new IPEndPoint(IPAddress.Any, serverPort);
     }
     
-    public void RoutePackets(ServerPacketRouter router)
+    public void RoutePackets(PacketRouter router)
     {
         while (Reader.TryRead(out RawPacket rawPacket))
         {
@@ -31,8 +31,15 @@ public class ServerUdpHandler : BaseUdpHandler
         }
     }
 
+    public void SendToClient(ReadOnlyMemory<byte> data, EndPoint endPoint)
+    {
+        Send(data, endPoint);
+    }
+    
     public void StartListening()
     {
         StartListening(_localEndPoint);
     }
+    
+    
 }
