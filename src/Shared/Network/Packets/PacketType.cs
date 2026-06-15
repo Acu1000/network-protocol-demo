@@ -10,6 +10,7 @@ public enum PacketType : byte
     Pong = 0x06,
     
     // Entity synchronization
+    SingleEntityUpdate = 0x11,
     
     // RPC
 }
