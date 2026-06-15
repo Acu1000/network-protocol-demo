@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace Protocol.Shared.Network.Packets;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-public readonly record struct PongPacket
+public readonly record struct PongPacket : IPacket<PongPacket>
 {
     public const int PacketMinSize = 1;
     

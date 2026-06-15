@@ -2,7 +2,7 @@ using System;
 
 namespace Protocol.Shared.Network.Packets;
 
-public readonly record struct ConnectRequestPacket
+public readonly record struct ConnectRequestPacket : IPacket<ConnectRequestPacket>
 {
     public const int PacketMinSize = 9;
     
