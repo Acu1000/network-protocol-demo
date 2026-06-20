@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://bko74ijajptat"]
+
+[ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_ls03f"]
+
+[node name="TestClient" type="Node2D" unique_id=923777067]
+
+[node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114]
+script = ExtResource("1_ls03f")
+
+[node name="Label" type="Label" parent="." unique_id=784393024]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "CLIENT"

@@ -17,6 +17,7 @@ public partial class ServerNetworkContext : Node
     
     private SampleEntity sampleEntityC = new();
     private SampleEntity sampleEntityS = new();
+    private long frame = 0;
     
     public ServerNetworkContext()
     {
@@ -34,16 +35,16 @@ public partial class ServerNetworkContext : Node
         _router.AddHandler(PacketType.SingleEntityUpdate, _serverEntityManager.HandleSingleEntityUpdatePacket);
         
         _udpHandler.StartListening();
-
-        Task.Run(() =>
-        {
-            Task.Delay(500);
-            _serverEntityManager.SetEntityNetworkOwner(123, 1);
-        });
     }
     
     public override void _Process(double delta)
     {
+        frame++;
+        if (frame == 100)
+        {
+            _serverEntityManager.SetEntityNetworkOwner(123, 1);
+        }
+        
         sampleEntityS.Counter++;
         //GD.Print("SERVER: S = " + sampleEntityS.Counter + ", C = " + sampleEntityC.Counter);
         

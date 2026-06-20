@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://pyn2xca08ahy"]
+
+[ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
+
+[node name="TestServer" type="Node2D" unique_id=2032377071]
+
+[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262]
+script = ExtResource("1_5gbfo")
+
+[node name="Label" type="Label" parent="." unique_id=1134094391]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "SERVER"
