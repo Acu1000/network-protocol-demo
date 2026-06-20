@@ -1,3 +1,6 @@
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using Godot;
 using Protocol.Shared.Entities;
 using Protocol.Shared.Network;
@@ -31,6 +34,12 @@ public partial class ServerNetworkContext : Node
         _router.AddHandler(PacketType.SingleEntityUpdate, _serverEntityManager.HandleSingleEntityUpdatePacket);
         
         _udpHandler.StartListening();
+
+        Task.Run(() =>
+        {
+            Task.Delay(500);
+            _serverEntityManager.SetEntityNetworkOwner(123, 1);
+        });
     }
     
     public override void _Process(double delta)

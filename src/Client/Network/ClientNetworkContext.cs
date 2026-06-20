@@ -33,6 +33,7 @@ public partial class ClientNetworkContext : Node
 		
 		_router.AddHandler(PacketType.Pong, (_, _) => GD.Print("CLIENT: Pong received"));
 		_router.AddHandler(PacketType.SingleEntityUpdate, _clientEntityManager.HandleSingleEntityUpdatePacket);
+		_router.AddHandler(PacketType.SetEntityOwner, _clientEntityManager.HandleSetEntityOwnerPacket);
 	}
 	
 	public override void _Process(double delta)

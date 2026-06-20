@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using Godot;
 using Protocol.Shared.Entities;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
@@ -9,7 +10,7 @@ namespace Protocol.Server;
 public class ServerEntityManager : BaseEntityManager
 {
     private readonly UdpHandler _udpHandler;
-
+    
     public ServerEntityManager(UdpHandler udpHandler)
     {
         _udpHandler = udpHandler;
@@ -31,6 +32,17 @@ public class ServerEntityManager : BaseEntityManager
     {
         _entities[id].UpdateState(stateBytes);
     }
+
+    public void SetEntityNetworkOwner(UInt64 entityId, UInt16 newOwnerId)
+    {
+        if (_entities.TryGetValue(entityId, out var entity))
+        {
+            entity.NetworkOwnerId = newOwnerId;
+            
+            SetEntityOwnerPacket packet = new(123, 1);
+            _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 54321));
+        }
+    }
     
     public override void Process()
     {
@@ -38,7 +50,7 @@ public class ServerEntityManager : BaseEntityManager
         {
             UInt64 id = kv.Key;
             Entity entity = kv.Value;
-
+            
             if (entity.StateChanged())
             {
                 SingleEntityUpdatePacket packet = new SingleEntityUpdatePacket(
@@ -46,11 +58,19 @@ public class ServerEntityManager : BaseEntityManager
                     entity.EntityType, 
                     entity.GetState()
                     );
+
+                if (entity.NetworkOwnerId == 0)
+                {
+                    // TODO: send to all connected clients instead
+                    _udpHandler.Send(
+                        packet.ToBytes(), 
+                        new IPEndPoint(IPAddress.Loopback, 54321));
+                }
+                else
+                {
+                    // TODO: send updates to all clients except the network owner
+                }
                 
-                // TODO: send to all connected clients instead
-                _udpHandler.Send(
-                    packet.ToBytes(), 
-                    new IPEndPoint(IPAddress.Loopback, 54321));
             }
         }
     }

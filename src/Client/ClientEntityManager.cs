@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using Godot;
 using Protocol.Shared.Entities;
@@ -10,6 +11,8 @@ namespace Protocol.Client;
 public class ClientEntityManager : BaseEntityManager
 {
     private readonly UdpHandler _udpHandler;
+    
+    private readonly HashSet<UInt64> _ownedEntities = new();
 
     public ClientEntityManager(UdpHandler udpHandler)
     {
@@ -24,6 +27,29 @@ public class ClientEntityManager : BaseEntityManager
         }
         
         UpdateOrCreateEntity(packet.EntityID, packet.NewStateBytes);
+    }
+
+    public void HandleSetEntityOwnerPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (!SetEntityOwnerPacket.TryParse(packetData, out SetEntityOwnerPacket packet))
+        {
+            return;
+        }
+
+        if (_entities.TryGetValue(packet.EntityId, out var entity))
+        {
+            entity.NetworkOwnerId = packet.NewOwnerId;
+        }
+
+        // TODO: Check if matches own ClientId
+        if (packet.NewOwnerId == 1)
+        {
+            _ownedEntities.Add(packet.EntityId);
+        }
+        else if (_ownedEntities.Contains(packet.EntityId) && packet.NewOwnerId != 1)
+        {
+            _ownedEntities.Remove(packet.EntityId);
+        }
     }
     
     private void UpdateOrCreateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
@@ -43,12 +69,24 @@ public class ClientEntityManager : BaseEntityManager
 
     public override void Process()
     {
-        foreach (var kv in _entities)
+        foreach (var entityId in  _ownedEntities)
         {
-            UInt64 id = kv.Key;
-            Entity entity = kv.Value;
-            
-            
+            Entity entity = _entities.GetValueOrDefault(entityId);
+
+            if (entity == null) continue;
+
+            if (entity.StateChanged())
+            {
+                // TODO: add client packet header
+                SingleEntityUpdatePacket packet = new SingleEntityUpdatePacket(
+                    entityId,
+                    entity.EntityType,
+                    entity.GetState()
+                    );
+                
+                // TODO: Get server endpoint from session manager
+                _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 12345));
+            }
         }
     }
 }
