@@ -1,13 +1,26 @@
 [gd_scene format=3 uid="uid://bko74ijajptat"]
 
 [ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_ls03f"]
+[ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_k8r2p"]
+[ext_resource type="Script" uid="uid://br6f0sjh2ftqv" path="res://src/Shared/EntityHandlers/PlayerCharacterEntityHandler.cs" id="3_ktpax"]
 
 [node name="TestClient" type="Node2D" unique_id=923777067]
 
-[node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114]
-script = ExtResource("1_ls03f")
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1874691529]
+zoom = Vector2(30, 30)
 
-[node name="Label" type="Label" parent="." unique_id=784393024]
-offset_right = 40.0
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=1187782818]
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer" unique_id=784393024]
+offset_right = 55.0
 offset_bottom = 23.0
 text = "CLIENT"
+
+[node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114 node_paths=PackedStringArray("_entityHandlers")]
+script = ExtResource("1_ls03f")
+_entityHandlers = [NodePath("../PlayerCharacterEntityHandler")]
+
+[node name="PlayerCharacterEntityHandler" type="Node" parent="." unique_id=2058432297 node_paths=PackedStringArray("_characterContainer")]
+script = ExtResource("3_ktpax")
+_playerCharacterEntityPrefab = ExtResource("2_k8r2p")
+_characterContainer = NodePath("..")

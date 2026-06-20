@@ -10,6 +10,8 @@ namespace Protocol.Server;
 public class ServerEntityManager : BaseEntityManager
 {
     private readonly UdpHandler _udpHandler;
+
+    private UInt64 _nextId = 1;
     
     public ServerEntityManager(UdpHandler udpHandler)
     {
@@ -28,9 +30,29 @@ public class ServerEntityManager : BaseEntityManager
         UpdateEntity(packet.EntityID, packet.NewStateBytes);
     }
 
+    public UInt64 AddEntityGlobal(Entity entity)
+    {
+        UInt64 id = _nextId++;
+        
+        AddEntityLocal(id, entity);
+        
+        SingleEntityCreatePacket packet = new SingleEntityCreatePacket(
+            id, 
+            entity.EntityType, 
+            entity.GetState());
+        
+        // TODO: send to all connected clients instead
+        _udpHandler.Send(
+            packet.ToBytes(), 
+            new IPEndPoint(IPAddress.Loopback, 54321));
+
+        return id;
+    } 
+    
     private void UpdateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
     {
         _entities[id].UpdateState(stateBytes);
+        UpdateEntityLocal(id, _entities[id]);
     }
 
     public void SetEntityNetworkOwner(UInt64 entityId, UInt16 newOwnerId)
@@ -39,7 +61,7 @@ public class ServerEntityManager : BaseEntityManager
         {
             entity.NetworkOwnerId = newOwnerId;
             
-            SetEntityOwnerPacket packet = new(123, 1);
+            SetEntityOwnerPacket packet = new(entityId, newOwnerId);
             _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 54321));
         }
     }

@@ -1,13 +1,26 @@
 [gd_scene format=3 uid="uid://pyn2xca08ahy"]
 
 [ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
+[ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_mt1c3"]
+[ext_resource type="Script" uid="uid://br6f0sjh2ftqv" path="res://src/Shared/EntityHandlers/PlayerCharacterEntityHandler.cs" id="3_v3myk"]
 
 [node name="TestServer" type="Node2D" unique_id=2032377071]
 
-[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262]
+[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262 node_paths=PackedStringArray("_entityHandlers")]
 script = ExtResource("1_5gbfo")
+_entityHandlers = [NodePath("../PlayerCharacterEntityHandler")]
 
-[node name="Label" type="Label" parent="." unique_id=1134094391]
-offset_right = 40.0
+[node name="PlayerCharacterEntityHandler" type="Node" parent="." unique_id=1080347052 node_paths=PackedStringArray("_characterContainer")]
+script = ExtResource("3_v3myk")
+_playerCharacterEntityPrefab = ExtResource("2_mt1c3")
+_characterContainer = NodePath("..")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1299226294]
+zoom = Vector2(30, 30)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=712786084]
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer" unique_id=1134094391]
+offset_right = 58.0
 offset_bottom = 23.0
 text = "SERVER"

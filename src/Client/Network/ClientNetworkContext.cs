@@ -1,7 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.Net;
 using Godot;
 using Protocol.Server;
 using Protocol.Shared.Entities;
+using Protocol.Shared.EntityHandlers;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
 
@@ -12,6 +15,8 @@ public partial class ClientNetworkContext : Node
 	private readonly UdpHandler _udpHandler = new(54321);
 	private readonly PacketRouter _router = new();
 	private readonly ClientEntityManager _clientEntityManager;
+	
+	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 
 	// TODO: assign dynamically instead via session manager
 	private IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
@@ -29,10 +34,17 @@ public partial class ClientNetworkContext : Node
 		_clientEntityManager.AddEntityLocal(123, sampleEntityC);
 		_clientEntityManager.AddEntityLocal(456, sampleEntityS);
 		
+		foreach (var handlerNode in _entityHandlers)
+		{
+			if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");
+			_clientEntityManager.AddEntityHandler(handler.GetEntityType(), handler);
+		}
+		
 		_udpHandler.StartListening();
 		
 		_router.AddHandler(PacketType.Pong, (_, _) => GD.Print("CLIENT: Pong received"));
 		_router.AddHandler(PacketType.SingleEntityUpdate, _clientEntityManager.HandleSingleEntityUpdatePacket);
+		_router.AddHandler(PacketType.SingleEntityCreate, _clientEntityManager.HandleSingleEntityCreatePacket);
 		_router.AddHandler(PacketType.SetEntityOwner, _clientEntityManager.HandleSetEntityOwnerPacket);
 	}
 	

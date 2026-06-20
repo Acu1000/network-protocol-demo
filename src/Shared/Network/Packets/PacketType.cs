@@ -11,7 +11,8 @@ public enum PacketType : byte
     
     // Entity synchronization
     SingleEntityUpdate = 0x11,
-    SetEntityOwner = 0x12,
+    SingleEntityCreate = 0x12,
+    SetEntityOwner = 0x15,
     
     // RPC
 }

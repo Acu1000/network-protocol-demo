@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using Godot;
 using Protocol.Shared.Entities;
+using Protocol.Shared.EntityHandlers;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
 
@@ -26,7 +27,24 @@ public class ClientEntityManager : BaseEntityManager
             return;
         }
         
-        UpdateOrCreateEntity(packet.EntityID, packet.NewStateBytes);
+        if (_entities.TryGetValue(packet.EntityID, out var entity))
+        {
+            entity.UpdateState(packet.NewStateBytes);
+            UpdateEntityLocal(packet.EntityID, entity);
+        }
+    }
+
+    public void HandleSingleEntityCreatePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (!SingleEntityCreatePacket.TryParse(packetData, out SingleEntityCreatePacket packet)) return;
+        if (_entities.ContainsKey(packet.EntityId)) return;
+        
+        EntityType entityType = packet.EntityType;
+
+        Entity entity = EntityFactory.CreateEntity(entityType);
+        entity.UpdateState(packet.InitialStateBytes);
+        
+        AddEntityLocal(packet.EntityId, entity);
     }
 
     public void HandleSetEntityOwnerPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -35,35 +53,24 @@ public class ClientEntityManager : BaseEntityManager
         {
             return;
         }
-
+        
+        IEntityHandler handler = null;
         if (_entities.TryGetValue(packet.EntityId, out var entity))
         {
             entity.NetworkOwnerId = packet.NewOwnerId;
+            handler = _entityHandlers.GetValueOrDefault(entity.EntityType);
         }
-
+        
         // TODO: Check if matches own ClientId
         if (packet.NewOwnerId == 1)
         {
             _ownedEntities.Add(packet.EntityId);
+            handler?.EntityOwnershipAcquired(packet.EntityId);
         }
         else if (_ownedEntities.Contains(packet.EntityId) && packet.NewOwnerId != 1)
         {
             _ownedEntities.Remove(packet.EntityId);
-        }
-    }
-    
-    private void UpdateOrCreateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
-    {
-        //GD.Print($"Updating entity {id}");
-        
-        if (_entities.TryGetValue(id, out var entity))
-        {
-            entity.UpdateState(stateBytes);
-        }
-        else
-        {
-            // TODO: create entity
-            throw new NotImplementedException("Create entity");
+            handler?.EntityOwnershipLost(packet.EntityId);
         }
     }
 
