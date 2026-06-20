@@ -36,7 +36,7 @@ public partial class ServerNetworkContext : Node
     public override void _Process(double delta)
     {
         sampleEntityS.Counter++;
-        GD.Print("SERVER: S = " + sampleEntityS.Counter + ", C = " + sampleEntityC.Counter);
+        //GD.Print("SERVER: S = " + sampleEntityS.Counter + ", C = " + sampleEntityC.Counter);
         
         _udpHandler.RoutePackets(_router);
         

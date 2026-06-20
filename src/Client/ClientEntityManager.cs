@@ -28,7 +28,7 @@ public class ClientEntityManager : BaseEntityManager
     
     private void UpdateOrCreateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
     {
-        GD.Print($"Updating entity {id}");
+        //GD.Print($"Updating entity {id}");
         
         if (_entities.TryGetValue(id, out var entity))
         {
