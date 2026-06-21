@@ -21,13 +21,15 @@ public class ServerSessionManager : IServerSessionManager
         _serverUdpHandler = serverUdpHandler;
     }
 
+    public IReadOnlyList<ClientInfo> Clients => _clients;
+
     public void SendToClient<T>(IPacket<T> packet, UInt16 clientId) where T : IPacket<T>
     {
         ClientInfo? client = _clients.Find(c => c.ClientId == clientId);
 
         if (client == null)
         {
-            GD.PrintErr($"SERVER: Cannot send packet. Client {clientId} not found.");
+            GD.PrintErr($"SERVER: Client {clientId} not found");
             return;
         }
 
@@ -42,11 +44,15 @@ public class ServerSessionManager : IServerSessionManager
         {
             _serverUdpHandler.Send(data, client.EndPoint);
         }
+
+        GD.Print($"SERVER: Sent {typeof(T).Name} to all clients. Count: {_clients.Count}");
     }
 
     public void SendToAllClientsExcept<T>(IPacket<T> packet, UInt16 skippedClientId) where T : IPacket<T>
     {
         byte[] data = packet.ToBytes();
+
+        int sentCount = 0;
 
         foreach (ClientInfo client in _clients)
         {
@@ -56,7 +62,10 @@ public class ServerSessionManager : IServerSessionManager
             }
 
             _serverUdpHandler.Send(data, client.EndPoint);
+            sentCount++;
         }
+
+        GD.Print($"SERVER: Sent {typeof(T).Name} to all clients except {skippedClientId}. Count: {sentCount}");
     }
 
     public void DisconnectClient(UInt16 clientId)
@@ -69,7 +78,7 @@ public class ServerSessionManager : IServerSessionManager
         }
         else
         {
-            GD.PrintErr($"SERVER: Cannot disconnect. Client {clientId} not found.");
+            GD.PrintErr($"SERVER: Tried to disconnect unknown client {clientId}");
         }
     }
 
@@ -77,13 +86,15 @@ public class ServerSessionManager : IServerSessionManager
     {
         if (endPoint is not IPEndPoint ipEndPoint)
         {
-            GD.PrintErr("SERVER: Connect request rejected. Invalid endpoint.");
+            GD.PrintErr("SERVER: Connect rejected. Invalid endpoint.");
             return;
         }
 
         if (TryGetClientId(ipEndPoint, out UInt16 existingClientId))
         {
             GD.Print($"SERVER: Client already connected. ClientId: {existingClientId}");
+
+            SendToClient(new ConnectAcceptPacket(existingClientId), existingClientId);
             return;
         }
 
@@ -96,22 +107,59 @@ public class ServerSessionManager : IServerSessionManager
 
         _clients.Add(client);
 
-        GD.Print($"SERVER: Player {client.Username} connected with id {client.ClientId}");
+        GD.Print($"SERVER: Player {client.Username} connected as ClientId {client.ClientId}");
 
+        SendToClient(new ConnectAcceptPacket(client.ClientId), client.ClientId);
     }
 
     public void HandleConnectRequestPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
-        if (ConnectRequestPacket.TryParse(packetData, out var packet))
+        if (!ConnectRequestPacket.TryParse(packetData, out ConnectRequestPacket packet))
         {
-            HandleConnectRequest(packet.LoginToken, sourceEndPoint);
+            GD.PrintErr("SERVER: Invalid ConnectRequestPacket");
+            return;
         }
+
+        HandleConnectRequest(packet.LoginToken, sourceEndPoint);
+    }
+
+    public void HandleDisconnectRequestPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (!DisconnectRequestPacket.TryParse(packetData, out DisconnectRequestPacket packet))
+        {
+            GD.PrintErr("SERVER: Invalid DisconnectRequestPacket");
+            return;
+        }
+
+        if (sourceEndPoint is not IPEndPoint ipEndPoint)
+        {
+            return;
+        }
+
+        if (!TryGetClientId(ipEndPoint, out UInt16 endpointClientId))
+        {
+            GD.PrintErr("SERVER: Disconnect rejected. Unknown endpoint.");
+            return;
+        }
+
+        if (endpointClientId != packet.ClientId)
+        {
+            GD.PrintErr($"SERVER: Disconnect rejected. Packet ClientId {packet.ClientId}, endpoint ClientId {endpointClientId}");
+            return;
+        }
+
+        GD.Print($"SERVER: Disconnect request from ClientId {packet.ClientId}");
+
+        _serverUdpHandler.Send(
+            new DisconnectAcceptPacket(packet.ClientId).ToBytes(),
+            sourceEndPoint
+        );
+
+        DisconnectClient(packet.ClientId);
     }
 
     public void HandlePingPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
-        GD.Print("SERVER: Ping received");
-
         if (sourceEndPoint is not IPEndPoint ipEndPoint)
         {
             return;
@@ -123,10 +171,9 @@ public class ServerSessionManager : IServerSessionManager
             return;
         }
 
-        GD.Print($"SERVER: Ping from client {clientId}");
+        GD.Print($"SERVER: Ping received from ClientId {clientId}");
 
-        PongPacket pongPacket = new();
-        _serverUdpHandler.Send(pongPacket.ToBytes(), sourceEndPoint);
+        _serverUdpHandler.Send(new PongPacket().ToBytes(), sourceEndPoint);
     }
 
     public void HandlePongPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -142,8 +189,7 @@ public class ServerSessionManager : IServerSessionManager
             return;
         }
 
-        GD.Print($"SERVER: Pong received from client {clientId}");
-
+        GD.Print($"SERVER: Pong received from ClientId {clientId}");
     }
 
     public bool TryGetClientId(IPEndPoint sourceEndPoint, out UInt16 clientId)
@@ -162,6 +208,7 @@ public class ServerSessionManager : IServerSessionManager
                 return true;
             }
         }
+
         clientId = default;
         return false;
     }

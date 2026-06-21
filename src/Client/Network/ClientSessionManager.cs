@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Godot;
@@ -16,6 +15,8 @@ public class ClientSessionManager : IClientSessionManager
 
     private TaskCompletionSource<bool>? _connectCompletionSource;
 
+    private UInt16 _clientId;
+
     private bool _connected;
 
     public ClientSessionManager(UdpHandler udpHandler)
@@ -23,24 +24,28 @@ public class ClientSessionManager : IClientSessionManager
         _udpHandler = udpHandler;
     }
 
+    public bool IsConnected => _connected;
+
+    public UInt16 ClientId => _clientId;
+
     public async Task<bool> TryConnectToServer(IPEndPoint endPoint)
     {
-        if (_connected && IsServerEndpoint(endPoint))
+        if (_connected)
         {
+            GD.Print($"CLIENT: Already connected as ClientId {_clientId}");
             return true;
         }
 
         _serverEndPoint = endPoint;
-        _connected = false;
-
         _connectCompletionSource = new TaskCompletionSource<bool>();
 
         UInt64 loginToken = (UInt64)Random.Shared.NextInt64(1, long.MaxValue);
 
-        ConnectRequestPacket connectRequestPacket = new(loginToken);
-        _udpHandler.Send(connectRequestPacket.ToBytes(), _serverEndPoint);
+        ConnectRequestPacket packet = new(loginToken);
 
-        GD.Print($"CLIENT: Connect request sent to {_serverEndPoint}");
+        _udpHandler.Send(packet.ToBytes(), _serverEndPoint);
+
+        GD.Print($"CLIENT: ConnectRequest sent to {_serverEndPoint}");
 
         Task completedTask = await Task.WhenAny(
             _connectCompletionSource.Task,
@@ -49,11 +54,12 @@ public class ClientSessionManager : IClientSessionManager
 
         if (completedTask != _connectCompletionSource.Task)
         {
-            GD.PrintErr("CLIENT: Connection timeout");
+            GD.PrintErr("CLIENT: Connect timeout");
 
             _connectCompletionSource = null;
             _serverEndPoint = null;
             _connected = false;
+            _clientId = 0;
 
             return false;
         }
@@ -61,31 +67,30 @@ public class ClientSessionManager : IClientSessionManager
         bool result = await _connectCompletionSource.Task;
 
         _connectCompletionSource = null;
-        _connected = result;
 
         return result;
     }
 
     public void DisconnectFromServer()
     {
-        if (!_connected)
+        if (!_connected || _serverEndPoint == null)
         {
+            GD.PrintErr("CLIENT: Cannot disconnect. Client is not connected.");
             return;
         }
 
-        GD.Print("CLIENT: Disconnected from server");
+        DisconnectRequestPacket packet = new(_clientId);
 
-        _connected = false;
-        _serverEndPoint = null;
-        _connectCompletionSource = null;
+        _udpHandler.Send(packet.ToBytes(), _serverEndPoint);
 
+        GD.Print($"CLIENT: DisconnectRequest sent. ClientId {_clientId}");
     }
 
     public void SendToServer<T>(IPacket<T> packet) where T : IPacket<T>
     {
         if (!_connected || _serverEndPoint == null)
         {
-            GD.PrintErr("CLIENT: Cannot send packet. Client is not connected to server.");
+            GD.PrintErr("CLIENT: Cannot send packet. Not connected.");
             return;
         }
 
@@ -101,20 +106,26 @@ public class ClientSessionManager : IClientSessionManager
 
         if (!IsServerEndpoint(ipEndPoint))
         {
-            GD.PrintErr("CLIENT: Connect accept rejected. Packet came from unknown endpoint.");
+            GD.PrintErr("CLIENT: ConnectAccept rejected. Unknown endpoint.");
             return;
         }
 
-        GD.Print("CLIENT: Connect accepted by server");
+        if (!ConnectAcceptPacket.TryParse(packetData, out ConnectAcceptPacket packet))
+        {
+            GD.PrintErr("CLIENT: Invalid ConnectAcceptPacket");
+            return;
+        }
 
+        _clientId = packet.ClientId;
         _connected = true;
+
+        GD.Print($"CLIENT: Connected. ClientId {_clientId}");
+
         _connectCompletionSource?.TrySetResult(true);
     }
 
-    public void HandlePingPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    public void HandleDisconnectAcceptPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
-        GD.Print("CLIENT: Ping received");
-
         if (sourceEndPoint is not IPEndPoint ipEndPoint)
         {
             return;
@@ -122,12 +133,40 @@ public class ClientSessionManager : IClientSessionManager
 
         if (!IsServerEndpoint(ipEndPoint))
         {
-            GD.PrintErr("CLIENT: Ping rejected. Packet came from unknown endpoint.");
+            GD.PrintErr("CLIENT: DisconnectAccept rejected. Unknown endpoint.");
             return;
         }
 
-        PongPacket pongPacket = new();
-        _udpHandler.Send(pongPacket.ToBytes(), sourceEndPoint);
+        if (!DisconnectAcceptPacket.TryParse(packetData, out DisconnectAcceptPacket packet))
+        {
+            GD.PrintErr("CLIENT: Invalid DisconnectAcceptPacket");
+            return;
+        }
+
+        GD.Print($"CLIENT: Disconnect accepted for ClientId {packet.ClientId}");
+
+        _connected = false;
+        _clientId = 0;
+        _serverEndPoint = null;
+        _connectCompletionSource = null;
+    }
+
+    public void HandlePingPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (sourceEndPoint is not IPEndPoint ipEndPoint)
+        {
+            return;
+        }
+
+        if (!IsServerEndpoint(ipEndPoint))
+        {
+            GD.PrintErr("CLIENT: Ping rejected. Unknown endpoint.");
+            return;
+        }
+
+        GD.Print("CLIENT: Ping received from server");
+
+        _udpHandler.Send(new PongPacket().ToBytes(), sourceEndPoint);
     }
 
     public void HandlePongPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -139,12 +178,11 @@ public class ClientSessionManager : IClientSessionManager
 
         if (!IsServerEndpoint(ipEndPoint))
         {
-            GD.PrintErr("CLIENT: Pong rejected. Packet came from unknown endpoint.");
+            GD.PrintErr("CLIENT: Pong rejected. Unknown endpoint.");
             return;
         }
 
         GD.Print("CLIENT: Pong received from server");
-
     }
 
     public bool IsServerEndpoint(IPEndPoint endpoint)
