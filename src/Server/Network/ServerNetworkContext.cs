@@ -18,22 +18,21 @@ public partial class ServerNetworkContext : Node
     private readonly ServerEntityManager _serverEntityManager;
     
     [Export] private Godot.Collections.Array<Node> _entityHandlers;
+    [Export] public double SnapshotInterval = 1.0f;
+
+    private double _snapshotTimer;
     
-    private SampleEntity sampleEntityC = new();
-    private SampleEntity sampleEntityS = new();
     private long frame = 0;
     
     public ServerNetworkContext()
     {
+        _snapshotTimer = SnapshotInterval;
         _sessionManager = new ServerSessionManager(_udpHandler);
         _serverEntityManager = new ServerEntityManager(_udpHandler);
     }
     
     public override void _Ready()
     {
-        _serverEntityManager.AddEntityLocal(123, sampleEntityC);
-        _serverEntityManager.AddEntityLocal(456, sampleEntityS);
-        
         foreach (var handlerNode in _entityHandlers)
         {
             if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");
@@ -43,7 +42,7 @@ public partial class ServerNetworkContext : Node
         _router.AddHandler(PacketType.ConnectRequest, _sessionManager.HandleConnectRequestPacket);
         _router.AddHandler(PacketType.Ping, _sessionManager.HandlePingPacket);
         _router.AddHandler(PacketType.SingleEntityUpdate, _serverEntityManager.HandleSingleEntityUpdatePacket);
-        
+
         _udpHandler.StartListening();
     }
 
@@ -52,18 +51,24 @@ public partial class ServerNetworkContext : Node
     public override void _Process(double delta)
     {
         frame++;
-        if (frame == 50)
+        if (frame == 5)
         {
             PlayerCharacterEntity character = new();
             playerid = _serverEntityManager.AddEntityGlobal(character);
-        }
-        if (frame == 100)
-        {
             _serverEntityManager.SetEntityNetworkOwner(playerid, 1);
         }
+        /*if (frame == 100)
+        {
+            _serverEntityManager.SetEntityNetworkOwner(playerid, 1);
+        }*/
+
+        _snapshotTimer -= delta;
+        if (_snapshotTimer <= 0.0f)
+        {
+            _snapshotTimer += SnapshotInterval;
+            _serverEntityManager.SendSnapshotToAll();
+        }
         
-        sampleEntityS.Counter++;
-        //GD.Print("SERVER: S = " + sampleEntityS.Counter + ", C = " + sampleEntityC.Counter);
         
         _udpHandler.RoutePackets(_router);
         

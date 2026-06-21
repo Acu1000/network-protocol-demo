@@ -34,6 +34,32 @@ public class ClientEntityManager : BaseEntityManager
         }
     }
 
+    public void HandleSingleEntitySnapshotPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (!SingleEntitySnapshotPacket.TryParse(packetData, out SingleEntitySnapshotPacket packet))
+        {
+            return;
+        }
+
+        // TODO: keep track of non-updated entities and delete them
+        if (_entities.TryGetValue(packet.EntityId, out var entity))
+        {
+            entity.UpdateState(packet.StateBytes);
+            var handler = _entityHandlers.GetValueOrDefault(packet.EntityType);
+            handler?.EntityUpdated(packet.EntityId, entity);
+        }
+        else
+        {
+            // Entity does not exist; Create new
+            Entity newEntity = EntityFactory.CreateEntity(packet.EntityType);
+            newEntity.UpdateState(packet.StateBytes);
+            AddEntityLocal(packet.EntityId, newEntity);
+            var handler = _entityHandlers.GetValueOrDefault(packet.EntityType);
+            handler?.EntityCreated(packet.EntityId, newEntity);
+        }
+        SetEntityOwnerLocal(packet.EntityId, packet.EntityNetworkOwnerId);
+    }
+
     public void HandleSingleEntityCreatePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
         if (!SingleEntityCreatePacket.TryParse(packetData, out SingleEntityCreatePacket packet)) return;
@@ -54,26 +80,31 @@ public class ClientEntityManager : BaseEntityManager
             return;
         }
         
+        SetEntityOwnerLocal(packet.EntityId, packet.NewOwnerId);
+    }
+
+    private void SetEntityOwnerLocal(UInt64 entityId, UInt16 newOwnerId)
+    {
         IEntityHandler handler = null;
-        if (_entities.TryGetValue(packet.EntityId, out var entity))
+        if (_entities.TryGetValue(entityId, out var entity))
         {
-            entity.NetworkOwnerId = packet.NewOwnerId;
+            entity.NetworkOwnerId = newOwnerId;
             handler = _entityHandlers.GetValueOrDefault(entity.EntityType);
         }
         
         // TODO: Check if matches own ClientId
-        if (packet.NewOwnerId == 1)
+        if (newOwnerId == 1)
         {
-            _ownedEntities.Add(packet.EntityId);
-            handler?.EntityOwnershipAcquired(packet.EntityId);
+            _ownedEntities.Add(entityId);
+            handler?.EntityOwnershipAcquired(entityId);
         }
-        else if (_ownedEntities.Contains(packet.EntityId) && packet.NewOwnerId != 1)
+        else if (_ownedEntities.Contains(entityId) && newOwnerId != 1)
         {
-            _ownedEntities.Remove(packet.EntityId);
-            handler?.EntityOwnershipLost(packet.EntityId);
+            _ownedEntities.Remove(entityId);
+            handler?.EntityOwnershipLost(entityId);
         }
     }
-
+    
     public override void Process()
     {
         foreach (var entityId in  _ownedEntities)

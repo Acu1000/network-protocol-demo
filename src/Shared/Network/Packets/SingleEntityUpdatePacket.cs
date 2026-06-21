@@ -3,7 +3,7 @@ using Protocol.Shared.Entities;
 
 namespace Protocol.Shared.Network.Packets;
 
-public record struct SingleEntityUpdatePacket : IPacket<SingleEntityUpdatePacket>
+public readonly record struct SingleEntityUpdatePacket : IPacket<SingleEntityUpdatePacket>
 {
     public const int PacketMinSize = 11;
     

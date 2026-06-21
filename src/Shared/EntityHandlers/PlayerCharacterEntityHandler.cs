@@ -26,9 +26,16 @@ public partial class PlayerCharacterEntityHandler : Node, IEntityHandler
 
     public void EntityUpdated(UInt64 entityId, Entity entity)
     {
-        PlayerCharacterEntity charEntity = entity as PlayerCharacterEntity;
+        if (entity is not PlayerCharacterEntity charEntity) return;
         if (!_characters.TryGetValue(entityId, out PlayerCharacter character)) return;
-        character.Position = new(charEntity!.PositionX,  charEntity!.PositionY);
+
+        // Don't update position if snapshot of own character is received close enough (prevents jittering)
+        if (!character.Controlled ||
+            (new Vector2(charEntity.PositionX, charEntity.PositionY).DistanceSquaredTo(character.Position) > 2.0f))
+        {
+            character.Position = new(charEntity.PositionX, charEntity.PositionY);
+        }
+
     }
 
     public void EntityDeleted(UInt64 entityId)

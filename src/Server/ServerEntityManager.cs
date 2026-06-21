@@ -11,7 +11,8 @@ public class ServerEntityManager : BaseEntityManager
 {
     private readonly UdpHandler _udpHandler;
 
-    private UInt64 _nextId = 1;
+    private UInt64 _nextEntityId = 1;
+    private UInt32 _nextSnapshotId = 1;
     
     public ServerEntityManager(UdpHandler udpHandler)
     {
@@ -32,7 +33,7 @@ public class ServerEntityManager : BaseEntityManager
 
     public UInt64 AddEntityGlobal(Entity entity)
     {
-        UInt64 id = _nextId++;
+        UInt64 id = _nextEntityId++;
         
         AddEntityLocal(id, entity);
         
@@ -94,6 +95,26 @@ public class ServerEntityManager : BaseEntityManager
                 }
                 
             }
+        }
+    }
+
+    public void SendSnapshotToAll()
+    {   
+        foreach (var kv in _entities)
+        {
+            UInt64 entityId = kv.Key;
+            Entity entity = kv.Value;
+
+            SingleEntitySnapshotPacket packet = new SingleEntitySnapshotPacket(
+                _nextSnapshotId++,
+                entityId,
+                entity.EntityType,
+                entity.NetworkOwnerId,
+                entity.GetState()
+            );
+            
+            // TODO: get all clients from session manager
+            _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 54321));
         }
     }
 }
