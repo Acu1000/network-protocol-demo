@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using Godot;
 using Protocol.Shared.Entities;
@@ -47,6 +48,11 @@ public class ServerEntityManager : BaseEntityManager
             packet.ToBytes(), 
             new IPEndPoint(IPAddress.Loopback, 54321));
 
+        if (entity.NetworkOwnerId == 0)
+        {
+            _entityHandlers.GetValueOrDefault(entity.EntityType)?.EntityOwnershipAcquired(id);
+        }
+        
         return id;
     } 
     
@@ -60,6 +66,13 @@ public class ServerEntityManager : BaseEntityManager
     {
         if (_entities.TryGetValue(entityId, out var entity))
         {
+            if (entity.NetworkOwnerId == newOwnerId) return;
+            
+            if (entity.NetworkOwnerId == 0)
+            {
+                _entityHandlers.GetValueOrDefault(entity.EntityType)?.EntityOwnershipLost(entityId);
+            }
+            
             entity.NetworkOwnerId = newOwnerId;
             
             SetEntityOwnerPacket packet = new(entityId, newOwnerId);

@@ -18,8 +18,12 @@ public partial class PlayerCharacterEntityHandler : Node, IEntityHandler
 
     public void EntityCreated(UInt64 entityId, Entity entity)
     {
+        if (entity is not PlayerCharacterEntity charEntity) return;
         PlayerCharacter newCharacter = (PlayerCharacter)_playerCharacterEntityPrefab.Instantiate();
-        newCharacter.Entity = entity as PlayerCharacterEntity;
+        
+        newCharacter.Entity = charEntity;
+        newCharacter.Position = new(charEntity.PositionX, charEntity.PositionY);
+        
         _characters.Add(entityId, newCharacter);
         _characterContainer.AddChild(newCharacter);
     }

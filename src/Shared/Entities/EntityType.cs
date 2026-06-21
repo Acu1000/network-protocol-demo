@@ -10,4 +10,5 @@ public enum EntityType : UInt16
     
     PlayerCharacter,
     Bullet,
+    BasicEnemy
 }

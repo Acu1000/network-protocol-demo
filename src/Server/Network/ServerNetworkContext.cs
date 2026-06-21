@@ -56,6 +56,11 @@ public partial class ServerNetworkContext : Node
             PlayerCharacterEntity character = new();
             playerid = _serverEntityManager.AddEntityGlobal(character);
             _serverEntityManager.SetEntityNetworkOwner(playerid, 1);
+
+            BasicEnemyEntity enemy = new();
+            enemy.PositionX = 3.0f;
+            enemy.PositionY = 3.0f;
+            _serverEntityManager.AddEntityGlobal(enemy);
         }
         /*if (frame == 100)
         {
@@ -68,7 +73,6 @@ public partial class ServerNetworkContext : Node
             _snapshotTimer += SnapshotInterval;
             _serverEntityManager.SendSnapshotToAll();
         }
-        
         
         _udpHandler.RoutePackets(_router);
         

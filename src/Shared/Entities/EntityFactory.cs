@@ -11,6 +11,9 @@ public static class EntityFactory
             case EntityType.PlayerCharacter:
                 return new PlayerCharacterEntity();
             
+            case EntityType.BasicEnemy:
+                return new BasicEnemyEntity();
+            
             case EntityType.SampleEntity:
                 return new SampleEntity();
         }

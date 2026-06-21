@@ -39,7 +39,7 @@ public partial class PlayerCharacter : CharacterBody2D
         Velocity = velocity;
         MoveAndSlide();
 
-        Entity.PositionX = Position.X;
-        Entity.PositionY = Position.Y;
+        Entity.PositionX = GlobalPosition.X;
+        Entity.PositionY = GlobalPosition.Y;
 	}
 }

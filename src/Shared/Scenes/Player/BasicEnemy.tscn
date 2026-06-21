@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://5hxlo8gdb5u4"]
+
+[ext_resource type="Script" uid="uid://bnwvacb05qmxr" path="res://src/Shared/Scenes/Player/BasicEnemy.cs" id="1_q77us"]
+[ext_resource type="Texture2D" uid="uid://bxr4osy0qfw7v" path="res://icon.svg" id="1_qb07h"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qb07h"]
+radius = 0.9
+
+[node name="BasicEnemy" type="CharacterBody2D" unique_id=939055418]
+script = ExtResource("1_q77us")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1625906624]
+self_modulate = Color(1, 0, 0, 1)
+scale = Vector2(0.014, 0.014)
+texture = ExtResource("1_qb07h")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2084152387]
+shape = SubResource("CircleShape2D_qb07h")

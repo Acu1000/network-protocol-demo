@@ -3,12 +3,14 @@
 [ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
 [ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_mt1c3"]
 [ext_resource type="Script" uid="uid://br6f0sjh2ftqv" path="res://src/Shared/EntityHandlers/PlayerCharacterEntityHandler.cs" id="3_v3myk"]
+[ext_resource type="Script" uid="uid://c5g6i1hk1f3l" path="res://src/Shared/EntityHandlers/BasicEnemyEntityHandler.cs" id="4_7dxic"]
+[ext_resource type="PackedScene" uid="uid://5hxlo8gdb5u4" path="res://src/Shared/Scenes/Player/BasicEnemy.tscn" id="5_hhq0p"]
 
 [node name="TestServer" type="Node2D" unique_id=2032377071]
 
 [node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262 node_paths=PackedStringArray("_entityHandlers")]
 script = ExtResource("1_5gbfo")
-_entityHandlers = [NodePath("../PlayerCharacterEntityHandler")]
+_entityHandlers = [NodePath("../PlayerCharacterEntityHandler"), NodePath("../BasicEnemyEntityHandler")]
 
 [node name="PlayerCharacterEntityHandler" type="Node" parent="." unique_id=1080347052 node_paths=PackedStringArray("_characterContainer")]
 script = ExtResource("3_v3myk")
@@ -24,3 +26,8 @@ zoom = Vector2(30, 30)
 offset_right = 58.0
 offset_bottom = 23.0
 text = "SERVER"
+
+[node name="BasicEnemyEntityHandler" type="Node" parent="." unique_id=1056602952 node_paths=PackedStringArray("_instanceContainer")]
+script = ExtResource("4_7dxic")
+_prefab = ExtResource("5_hhq0p")
+_instanceContainer = NodePath("..")
