@@ -1,12 +1,6 @@
 [gd_scene format=3 uid="uid://br51rwytvv2j3"]
 
-[ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_8uh7m"]
-[ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="2_6uqi0"]
+[ext_resource type="Script" uid="uid://duf32gm6l7xww" path="res://test_start.gd" id="1_37kl0"]
 
 [node name="Node2D" type="Node2D" unique_id=1271104422]
-
-[node name="Client" type="Node" parent="." unique_id=930717424]
-script = ExtResource("1_8uh7m")
-
-[node name="Server" type="Node" parent="." unique_id=878112930]
-script = ExtResource("2_6uqi0")
+script = ExtResource("1_37kl0")
