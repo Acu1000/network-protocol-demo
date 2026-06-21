@@ -14,7 +14,7 @@ public partial class ServerNetworkContext : Node
 {
     private readonly UdpHandler _udpHandler = new(12345);
     private readonly PacketRouter _router = new();
-    private readonly ServerSessionManager _sessionManager;
+    private readonly IServerSessionManager _serverSessionManager;
     private readonly ServerEntityManager _serverEntityManager;
     
     [Export] private Godot.Collections.Array<Node> _entityHandlers;
@@ -27,8 +27,8 @@ public partial class ServerNetworkContext : Node
     public ServerNetworkContext()
     {
         _snapshotTimer = SnapshotInterval;
-        _sessionManager = new ServerSessionManager(_udpHandler);
-        _serverEntityManager = new ServerEntityManager(_udpHandler);
+        _serverSessionManager = new MockServerSessionManager(_udpHandler);
+        _serverEntityManager = new ServerEntityManager(_serverSessionManager);
     }
     
     public override void _Ready()
@@ -39,8 +39,8 @@ public partial class ServerNetworkContext : Node
             _serverEntityManager.AddEntityHandler(handler.GetEntityType(), handler);
         }
         
-        _router.AddHandler(PacketType.ConnectRequest, _sessionManager.HandleConnectRequestPacket);
-        _router.AddHandler(PacketType.Ping, _sessionManager.HandlePingPacket);
+        _router.AddHandler(PacketType.ConnectRequest, _serverSessionManager.HandleConnectRequestPacket);
+        _router.AddHandler(PacketType.Ping, _serverSessionManager.HandlePingPacket);
         _router.AddHandler(PacketType.SingleEntityUpdate, _serverEntityManager.HandleSingleEntityUpdatePacket);
 
         _udpHandler.StartListening();

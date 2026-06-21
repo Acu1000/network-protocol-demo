@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Godot;
 using Protocol.Server;
@@ -12,9 +13,10 @@ namespace Protocol.Client.Network;
 
 public partial class ClientNetworkContext : Node
 {
-	private readonly UdpHandler _udpHandler = new(54321);
+	private readonly UdpHandler _udpHandler;
 	private readonly PacketRouter _router = new();
 	private readonly ClientEntityManager _clientEntityManager;
+	private readonly IClientSessionManager _clientSessionManager;
 	
 	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 
@@ -23,7 +25,11 @@ public partial class ClientNetworkContext : Node
 	
 	public ClientNetworkContext()
 	{
-		_clientEntityManager = new ClientEntityManager(_udpHandler);
+		int port = OS.GetCmdlineArgs().Contains("--first") ? 54321 : 54322;
+		
+		_udpHandler = new(54321);
+		_clientSessionManager = new MockClientSessionManager(_udpHandler, port);
+		_clientEntityManager = new ClientEntityManager(_clientSessionManager);
 	}
 	
 	public override void _Ready()

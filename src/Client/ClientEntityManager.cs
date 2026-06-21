@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Godot;
+using Protocol.Client.Network;
 using Protocol.Shared.Entities;
 using Protocol.Shared.EntityHandlers;
 using Protocol.Shared.Network;
@@ -11,13 +12,19 @@ namespace Protocol.Client;
 
 public class ClientEntityManager : BaseEntityManager
 {
-    private readonly UdpHandler _udpHandler;
+    //private readonly UdpHandler _udpHandler;
+    private readonly IClientSessionManager _clientSessionManager;
     
     private readonly HashSet<UInt64> _ownedEntities = new();
 
-    public ClientEntityManager(UdpHandler udpHandler)
+    /*public ClientEntityManager(UdpHandler udpHandler)
     {
         _udpHandler = udpHandler;
+    }*/
+
+    public ClientEntityManager(IClientSessionManager clientSessionManager)
+    {
+        _clientSessionManager = clientSessionManager;
     }
     
     public void HandleSingleEntityUpdatePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -123,7 +130,7 @@ public class ClientEntityManager : BaseEntityManager
                     );
                 
                 // TODO: Get server endpoint from session manager
-                _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 12345));
+                _clientSessionManager.SendToServer(packet);
             }
         }
     }

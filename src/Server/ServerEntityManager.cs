@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using Godot;
+using Protocol.Server.Network;
 using Protocol.Shared.Entities;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
@@ -10,14 +11,20 @@ namespace Protocol.Server;
 
 public class ServerEntityManager : BaseEntityManager
 {
-    private readonly UdpHandler _udpHandler;
+    //private readonly UdpHandler _udpHandler;
+    private readonly IServerSessionManager _serverSessionManager;
 
     private UInt64 _nextEntityId = 1;
     private UInt32 _nextSnapshotId = 1;
     
-    public ServerEntityManager(UdpHandler udpHandler)
+    /*public ServerEntityManager(UdpHandler udpHandler)
     {
         _udpHandler = udpHandler;
+    }*/
+
+    public ServerEntityManager(IServerSessionManager serverSessionManager)
+    {
+        _serverSessionManager = serverSessionManager;
     }
     
     public void HandleSingleEntityUpdatePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -43,10 +50,7 @@ public class ServerEntityManager : BaseEntityManager
             entity.EntityType, 
             entity.GetState());
         
-        // TODO: send to all connected clients instead
-        _udpHandler.Send(
-            packet.ToBytes(), 
-            new IPEndPoint(IPAddress.Loopback, 54321));
+        _serverSessionManager.SendToAllClients(packet);
 
         if (entity.NetworkOwnerId == 0)
         {
@@ -76,7 +80,7 @@ public class ServerEntityManager : BaseEntityManager
             entity.NetworkOwnerId = newOwnerId;
             
             SetEntityOwnerPacket packet = new(entityId, newOwnerId);
-            _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 54321));
+            _serverSessionManager.SendToClient(packet, newOwnerId);
         }
     }
     
@@ -97,14 +101,11 @@ public class ServerEntityManager : BaseEntityManager
 
                 if (entity.NetworkOwnerId == 0)
                 {
-                    // TODO: send to all connected clients instead
-                    _udpHandler.Send(
-                        packet.ToBytes(), 
-                        new IPEndPoint(IPAddress.Loopback, 54321));
+                    _serverSessionManager.SendToAllClients(packet);
                 }
                 else
                 {
-                    // TODO: send updates to all clients except the network owner
+                    _serverSessionManager.SendToAllClientsExcept(packet, entity.NetworkOwnerId);
                 }
                 
             }
@@ -126,8 +127,7 @@ public class ServerEntityManager : BaseEntityManager
                 entity.GetState()
             );
             
-            // TODO: get all clients from session manager
-            _udpHandler.Send(packet.ToBytes(), new IPEndPoint(IPAddress.Loopback, 54321));
+            _serverSessionManager.SendToAllClients(packet);
         }
     }
 }
