@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Godot;
 using Protocol.Server;
 using Protocol.Shared.Entities;
+using Protocol.Shared.EntityHandlers;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
 
@@ -9,50 +13,55 @@ namespace Protocol.Client.Network;
 
 public partial class ClientNetworkContext : Node
 {
-	private readonly UdpHandler _udpHandler = new(54321);
+	private readonly UdpHandler _udpHandler;
 	private readonly PacketRouter _router = new();
 
 	private readonly ClientSessionManager _sessionManager;
 	private readonly ClientEntityManager _clientEntityManager;
+	private readonly IClientSessionManager _clientSessionManager;
+	
+	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 
 	private readonly IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
 
-	private SampleEntity sampleEntityC = new();
-	private SampleEntity sampleEntityS = new();
-
+	// TODO: assign dynamically instead via session manager
+	private IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
+	
 	public ClientNetworkContext()
-	{
-		_sessionManager = new ClientSessionManager(_udpHandler);
-		_clientEntityManager = new ClientEntityManager(_udpHandler);
+	{		
+		_udpHandler = new(54321);
+		_clientSessionManager = new MockClientSessionManager(_udpHandler, port);
+		_clientEntityManager = new ClientEntityManager(_clientSessionManager);
 	}
 
 	public override void _Ready()
 	{
+
 		GD.Print("CLIENT: Ready");
 		GD.Print("CLIENT: ui_accept = connect");
 		GD.Print("CLIENT: ui_focus_next = send ping");
 		GD.Print("CLIENT: ui_cancel = disconnect");
 
-		_clientEntityManager.AddEntityLocal(123, sampleEntityC);
-		_clientEntityManager.AddEntityLocal(456, sampleEntityS);
-
-		_router.AddHandler(PacketType.ConnectAccept, _sessionManager.HandleConnectAcceptPacket);
+		foreach (var handlerNode in _entityHandlers)
+		{
+			if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");
+			_clientEntityManager.AddEntityHandler(handler.GetEntityType(), handler);
+		}
+		
+		_udpHandler.StartListening();
+		
+    _router.AddHandler(PacketType.ConnectAccept, _sessionManager.HandleConnectAcceptPacket);
 		_router.AddHandler(PacketType.DisconnectAccept, _sessionManager.HandleDisconnectAcceptPacket);
 		_router.AddHandler(PacketType.Ping, _sessionManager.HandlePingPacket);
 		_router.AddHandler(PacketType.Pong, _sessionManager.HandlePongPacket);
 		_router.AddHandler(PacketType.SingleEntityUpdate, _clientEntityManager.HandleSingleEntityUpdatePacket);
-
-		_udpHandler.StartListening();
+		_router.AddHandler(PacketType.SingleEntityCreate, _clientEntityManager.HandleSingleEntityCreatePacket);
+		_router.AddHandler(PacketType.SingleEntitySnapshot, _clientEntityManager.HandleSingleEntitySnapshotPacket);
+		_router.AddHandler(PacketType.SetEntityOwner, _clientEntityManager.HandleSetEntityOwnerPacket);
 	}
 
 	public override void _Process(double delta)
 	{
-		sampleEntityC.Counter++;
-
-		_udpHandler.RoutePackets(_router);
-
-		_clientEntityManager.Process();
-
 		if (Input.IsActionJustPressed("ui_accept"))
 		{
 			ConnectToServer();
@@ -67,6 +76,9 @@ public partial class ClientNetworkContext : Node
 		{
 			DisconnectFromServer();
 		}
+
+		_udpHandler.RoutePackets(_router);
+		_clientEntityManager.Process();
 	}
 
 	private async void ConnectToServer()

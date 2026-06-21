@@ -5,6 +5,7 @@ namespace Protocol.Shared.Entities;
 public abstract class Entity
 {
     public EntityType EntityType { get; }
+    public UInt16 NetworkOwnerId { get; set; }
     public bool IsOwned => true;
 
     public virtual bool StateChanged() => true;
