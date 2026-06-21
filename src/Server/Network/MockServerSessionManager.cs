@@ -53,6 +53,11 @@ public class MockServerSessionManager : IServerSessionManager
         throw new NotImplementedException();
     }
 
+    public void HandleDisconnectRequestPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        throw new NotImplementedException();
+    }
+
     public void HandlePingPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
         throw new NotImplementedException();

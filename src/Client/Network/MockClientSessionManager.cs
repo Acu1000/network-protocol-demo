@@ -35,6 +35,11 @@ public class MockClientSessionManager : IClientSessionManager
         throw new NotImplementedException();
     }
 
+    public void HandleDisconnectAcceptPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        throw new NotImplementedException();
+    }
+
     public void HandlePingPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
         throw new NotImplementedException();

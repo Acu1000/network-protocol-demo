@@ -16,21 +16,17 @@ public partial class ClientNetworkContext : Node
 	private readonly UdpHandler _udpHandler;
 	private readonly PacketRouter _router = new();
 
-	private readonly ClientSessionManager _sessionManager;
 	private readonly ClientEntityManager _clientEntityManager;
 	private readonly IClientSessionManager _clientSessionManager;
 	
 	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 
 	private readonly IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
-
-	// TODO: assign dynamically instead via session manager
-	private IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
 	
 	public ClientNetworkContext()
 	{		
 		_udpHandler = new(54321);
-		_clientSessionManager = new MockClientSessionManager(_udpHandler, port);
+		_clientSessionManager = new MockClientSessionManager(_udpHandler, 54321);
 		_clientEntityManager = new ClientEntityManager(_clientSessionManager);
 	}
 
@@ -50,10 +46,10 @@ public partial class ClientNetworkContext : Node
 		
 		_udpHandler.StartListening();
 		
-    _router.AddHandler(PacketType.ConnectAccept, _sessionManager.HandleConnectAcceptPacket);
-		_router.AddHandler(PacketType.DisconnectAccept, _sessionManager.HandleDisconnectAcceptPacket);
-		_router.AddHandler(PacketType.Ping, _sessionManager.HandlePingPacket);
-		_router.AddHandler(PacketType.Pong, _sessionManager.HandlePongPacket);
+		_router.AddHandler(PacketType.ConnectAccept, _clientSessionManager.HandleConnectAcceptPacket);
+		_router.AddHandler(PacketType.DisconnectAccept, _clientSessionManager.HandleDisconnectAcceptPacket);
+		_router.AddHandler(PacketType.Ping, _clientSessionManager.HandlePingPacket);
+		_router.AddHandler(PacketType.Pong, _clientSessionManager.HandlePongPacket);
 		_router.AddHandler(PacketType.SingleEntityUpdate, _clientEntityManager.HandleSingleEntityUpdatePacket);
 		_router.AddHandler(PacketType.SingleEntityCreate, _clientEntityManager.HandleSingleEntityCreatePacket);
 		_router.AddHandler(PacketType.SingleEntitySnapshot, _clientEntityManager.HandleSingleEntitySnapshotPacket);
@@ -83,7 +79,7 @@ public partial class ClientNetworkContext : Node
 
 	private async void ConnectToServer()
 	{
-		bool connected = await _sessionManager.TryConnectToServer(_serverEndPoint);
+		bool connected = await _clientSessionManager.TryConnectToServer(_serverEndPoint);
 
 		if (connected)
 		{
@@ -98,12 +94,12 @@ public partial class ClientNetworkContext : Node
 	private void SendPingToServer()
 	{
 		GD.Print("CLIENT TEST: Sending Ping to server");
-		_sessionManager.SendToServer(new PingPacket());
+		_clientSessionManager.SendToServer(new PingPacket());
 	}
 
 	private void DisconnectFromServer()
 	{
 		GD.Print("CLIENT TEST: Disconnecting from server");
-		_sessionManager.DisconnectFromServer();
+		_clientSessionManager.DisconnectFromServer();
 	}
 }
