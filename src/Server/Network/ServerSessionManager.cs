@@ -162,7 +162,6 @@ public class ServerSessionManager : IServerSessionManager
                 return true;
             }
         }
-
         clientId = default;
         return false;
     }
