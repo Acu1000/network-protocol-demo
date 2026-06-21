@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://pyn2xca08ahy"]
+
+[ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
+
+[node name="TestServer" type="Node2D" unique_id=2032377071]
+
+[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262]
+script = ExtResource("1_5gbfo")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1299226294]
+zoom = Vector2(30, 30)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D" unique_id=712786084]
+
+[node name="Label" type="Label" parent="Camera2D/CanvasLayer" unique_id=1134094391]
+offset_right = 58.0
+offset_bottom = 23.0
+text = "SERVER"
