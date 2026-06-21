@@ -6,6 +6,9 @@ public enum PacketType : byte
     
     // Session
     ConnectRequest = 0x01,
+    ConnectAccept = 0x02,
+    DisconnectRequest = 0x03,
+    DisconnectAccept = 0x04,
     Ping = 0x05,
     Pong = 0x06,
     
