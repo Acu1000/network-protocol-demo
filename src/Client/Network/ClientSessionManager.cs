@@ -14,7 +14,7 @@ public class ClientSessionManager : IClientSessionManager
     private IPEndPoint? _serverEndPoint;
 
     private TaskCompletionSource<bool>? _connectCompletionSource;
-
+    
     private UInt16 _clientId;
 
     private bool _connected;
@@ -26,6 +26,7 @@ public class ClientSessionManager : IClientSessionManager
 
     public bool IsConnected => _connected;
 
+    // TODO: nullable
     public UInt16 ClientId => _clientId;
 
     public async Task<bool> TryConnectToServer(IPEndPoint endPoint)

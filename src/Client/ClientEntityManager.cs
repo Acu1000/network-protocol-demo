@@ -92,20 +92,19 @@ public class ClientEntityManager : BaseEntityManager
 
     private void SetEntityOwnerLocal(UInt64 entityId, UInt16 newOwnerId)
     {
-        IEntityHandler handler = null;
+        IEntityHandler? handler = null;
         if (_entities.TryGetValue(entityId, out var entity))
         {
             entity.NetworkOwnerId = newOwnerId;
             handler = _entityHandlers.GetValueOrDefault(entity.EntityType);
         }
         
-        // TODO: Check if matches own ClientId
-        if (newOwnerId == 1)
+        if (newOwnerId == _clientSessionManager.ClientId)
         {
             _ownedEntities.Add(entityId);
             handler?.EntityOwnershipAcquired(entityId);
         }
-        else if (_ownedEntities.Contains(entityId) && newOwnerId != 1)
+        else if (_ownedEntities.Contains(entityId) && newOwnerId != _clientSessionManager.ClientId)
         {
             _ownedEntities.Remove(entityId);
             handler?.EntityOwnershipLost(entityId);

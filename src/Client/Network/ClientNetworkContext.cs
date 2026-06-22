@@ -25,19 +25,13 @@ public partial class ClientNetworkContext : Node
 	
 	public ClientNetworkContext()
 	{		
-		_udpHandler = new(54321);
-		_clientSessionManager = new MockClientSessionManager(_udpHandler, 54321);
+		_udpHandler = new(0);
+		_clientSessionManager = new ClientSessionManager(_udpHandler);
 		_clientEntityManager = new ClientEntityManager(_clientSessionManager);
 	}
 
 	public override void _Ready()
 	{
-
-		GD.Print("CLIENT: Ready");
-		GD.Print("CLIENT: ui_accept = connect");
-		GD.Print("CLIENT: ui_focus_next = send ping");
-		GD.Print("CLIENT: ui_cancel = disconnect");
-
 		foreach (var handlerNode in _entityHandlers)
 		{
 			if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");

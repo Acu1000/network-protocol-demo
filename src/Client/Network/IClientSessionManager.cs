@@ -7,6 +7,8 @@ namespace Protocol.Client.Network;
 
 public interface IClientSessionManager
 {
+    public UInt16 ClientId { get; }
+    
     public Task<bool> TryConnectToServer(IPEndPoint endPoint);
     public void DisconnectFromServer();
     public void SendToServer<T>(IPacket<T> packet) where T : IPacket<T>;

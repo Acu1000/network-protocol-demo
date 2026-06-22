@@ -30,7 +30,7 @@ public partial class ServerNetworkContext : Node
 	public ServerNetworkContext()
 	{
 		_snapshotTimer = SnapshotInterval;
-		_serverSessionManager = new MockServerSessionManager(_udpHandler);
+		_serverSessionManager = new ServerSessionManager(_udpHandler);
 		_serverEntityManager = new ServerEntityManager(_serverSessionManager);
 	}
 

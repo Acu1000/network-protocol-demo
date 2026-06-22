@@ -14,7 +14,9 @@ public class MockClientSessionManager : IClientSessionManager
     {
         _udpHandler = udpHandler;
     }
-    
+
+    public ushort ClientId { get; }
+
     public Task<bool> TryConnectToServer(IPEndPoint endPoint)
     {
         throw new NotImplementedException();
