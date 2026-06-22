@@ -75,13 +75,18 @@ public partial class ServerNetworkContext : Node
 	    frame++;
 	    if (frame == 5)
 		{
-		  PlayerCharacterEntity character = new();
-		  var playerid = _serverEntityManager.AddEntityGlobal(character);
-		  _serverEntityManager.SetEntityNetworkOwner(playerid, 1);
+		  PlayerCharacterEntity character1 = new();
+		  character1.PositionX = -5.0f;
+		  var playerid1 = _serverEntityManager.AddEntityGlobal(character1);
+		  _serverEntityManager.SetEntityNetworkOwner(playerid1, 1);
+		  
+		  PlayerCharacterEntity character2 = new();
+		  character2.PositionX = 5.0f;
+		  var playerid2 = _serverEntityManager.AddEntityGlobal(character2);
+		  _serverEntityManager.SetEntityNetworkOwner(playerid2, 2);
 
 		  BasicEnemyEntity enemy = new();
-		  enemy.PositionX = 3.0f;
-		  enemy.PositionY = 3.0f;
+		  enemy.PositionY = 5.0f;
 		  _serverEntityManager.AddEntityGlobal(enemy);
 		}
 		/*if (frame == 100)

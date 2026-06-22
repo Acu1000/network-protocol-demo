@@ -21,7 +21,9 @@ public partial class ClientNetworkContext : Node
 	
 	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 
-	private readonly IPEndPoint _serverEndPoint = new(IPAddress.Parse("127.0.0.1"), 12345);
+	[Export] public String ServerEndPoint = "127.0.0.1";
+
+	private IPEndPoint _serverEndPoint;
 	
 	public ClientNetworkContext()
 	{		
@@ -32,6 +34,8 @@ public partial class ClientNetworkContext : Node
 
 	public override void _Ready()
 	{
+		_serverEndPoint = new IPEndPoint(IPAddress.Parse(ServerEndPoint), 12345);
+		
 		foreach (var handlerNode in _entityHandlers)
 		{
 			if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");
