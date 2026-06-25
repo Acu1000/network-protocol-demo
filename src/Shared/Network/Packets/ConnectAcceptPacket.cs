@@ -4,15 +4,17 @@ namespace Protocol.Shared.Network.Packets;
 
 public readonly record struct ConnectAcceptPacket : IPacket<ConnectAcceptPacket>
 {
-    public const int PacketMinSize = 3;
+    public const int PacketMinSize = 7;
 
     public readonly PacketType PacketType = PacketType.ConnectAccept;
 
     public readonly UInt16 ClientId;
+    public readonly UInt32 SessionToken;
 
-    public ConnectAcceptPacket(UInt16 clientId)
+    public ConnectAcceptPacket(UInt16 clientId, UInt32 sessionToken)
     {
         ClientId = clientId;
+        SessionToken = sessionToken;
     }
 
     public ConnectAcceptPacket()
@@ -23,17 +25,14 @@ public readonly record struct ConnectAcceptPacket : IPacket<ConnectAcceptPacket>
     {
         if (data.Length < PacketMinSize)
         {
-            packet = new ConnectAcceptPacket();
+            packet = default;
             return false;
         }
 
-        if ((PacketType)data[0] != PacketType.ConnectAccept)
-        {
-            packet = new ConnectAcceptPacket();
-            return false;
-        }
-
-        packet = new ConnectAcceptPacket(BitConverter.ToUInt16(data.Slice(1, 2)));
+        packet = new ConnectAcceptPacket(
+            BitConverter.ToUInt16(data.Slice(1, 2)),
+            BitConverter.ToUInt32(data.Slice(3, 4))
+            );
 
         return true;
     }
@@ -48,6 +47,7 @@ public readonly record struct ConnectAcceptPacket : IPacket<ConnectAcceptPacket>
         buffer[0] = (byte)PacketType.ConnectAccept;
 
         BitConverter.TryWriteBytes(buffer.Slice(1, 2), ClientId);
+        BitConverter.TryWriteBytes(buffer.Slice(3, 4), SessionToken);
     }
 
     public byte[] ToBytes()

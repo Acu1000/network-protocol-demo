@@ -14,7 +14,7 @@ public partial class ServerNetworkContext : Node
 {
 	private readonly UdpHandler _udpHandler = new(12345);
 	private readonly PacketRouter _router = new();
-	private readonly IServerSessionManager _serverSessionManager;
+	private readonly ServerSessionManager _serverSessionManager;
 	private readonly ServerEntityManager _serverEntityManager;
 
 	private SampleEntity sampleEntityC = new();
@@ -30,7 +30,7 @@ public partial class ServerNetworkContext : Node
 	public ServerNetworkContext()
 	{
 		_snapshotTimer = SnapshotInterval;
-		_serverSessionManager = new ServerSessionManager(_udpHandler);
+		_serverSessionManager = new ServerSessionManager(_udpHandler, _router);
 		_serverEntityManager = new ServerEntityManager(_serverSessionManager);
 	}
 
@@ -61,9 +61,8 @@ public partial class ServerNetworkContext : Node
 	public override void _Process(double delta)
 	{
 		sampleEntityS.Counter++;
-
-		_udpHandler.RoutePackets(_router);
-
+		
+		_serverSessionManager.Process();
 		_serverEntityManager.Process();
 
 		if (Input.IsActionJustPressed("ui_page_up"))
@@ -100,9 +99,7 @@ public partial class ServerNetworkContext : Node
 			_snapshotTimer += SnapshotInterval;
 			_serverEntityManager.SendSnapshotToAll();
 		}
-
-		_udpHandler.RoutePackets(_router);
-
+		
 		_serverEntityManager.Process();
 	}
 }

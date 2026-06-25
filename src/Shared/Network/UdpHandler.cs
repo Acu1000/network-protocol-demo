@@ -79,6 +79,28 @@ public class UdpHandler
 			}
 		}
 	}
+	
+	public bool TryGetPacket(out byte[] packetSpan, out EndPoint? sourceEndPoint)
+	{
+		if (!Reader.TryRead(out RawPacket rawPacket))
+		{
+			packetSpan = default;
+			sourceEndPoint = null;
+			return false;
+		}
+		
+		try
+		{
+			// TODO: optimize the whole thing to get rid of array copy
+			packetSpan = rawPacket.PoolBuffer[..rawPacket.NumBytes];
+			sourceEndPoint = rawPacket.SourceEndPoint;
+			return true;
+		}
+		finally
+		{
+			ArrayPool<byte>.Shared.Return(rawPacket.PoolBuffer);
+		}
+	}
 
 	public void Send(ReadOnlyMemory<byte> data, EndPoint endPoint)
 	{

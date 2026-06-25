@@ -7,6 +7,6 @@ public class ClientInfo
 {
     public string Username { get; set; } = string.Empty;
     public UInt16 ClientId { get; set; }
-    public Int64 SessionToken;
-    public EndPoint EndPoint { get; set; } = default!;
+    public UInt32 SessionToken { get; set; }
+    public IPEndPoint EndPoint { get; set; } = default!;
 }

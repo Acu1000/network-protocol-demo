@@ -13,7 +13,7 @@ namespace Protocol.Client;
 public class ClientEntityManager : BaseEntityManager
 {
     //private readonly UdpHandler _udpHandler;
-    private readonly IClientSessionManager _clientSessionManager;
+    private readonly ClientSessionManager _clientSessionManager;
     
     private readonly HashSet<UInt64> _ownedEntities = new();
 
@@ -22,7 +22,7 @@ public class ClientEntityManager : BaseEntityManager
         _udpHandler = udpHandler;
     }*/
 
-    public ClientEntityManager(IClientSessionManager clientSessionManager)
+    public ClientEntityManager(ClientSessionManager clientSessionManager)
     {
         _clientSessionManager = clientSessionManager;
     }

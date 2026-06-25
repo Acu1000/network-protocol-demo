@@ -18,4 +18,6 @@ public interface IServerSessionManager
     public void HandlePongPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint);
 
     public bool TryGetClientId(IPEndPoint sourceEndPoint, out UInt16 clientId);
+
+    public void Process();
 }

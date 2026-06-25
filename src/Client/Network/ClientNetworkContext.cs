@@ -17,7 +17,7 @@ public partial class ClientNetworkContext : Node
 	private readonly PacketRouter _router = new();
 
 	private readonly ClientEntityManager _clientEntityManager;
-	private readonly IClientSessionManager _clientSessionManager;
+	private readonly ClientSessionManager _clientSessionManager;
 	
 	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 

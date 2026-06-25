@@ -12,7 +12,7 @@ namespace Protocol.Server;
 public class ServerEntityManager : BaseEntityManager
 {
     //private readonly UdpHandler _udpHandler;
-    private readonly IServerSessionManager _serverSessionManager;
+    private readonly ServerSessionManager _serverSessionManager;
 
     private UInt64 _nextEntityId = 1;
     private UInt32 _nextSnapshotId = 1;
@@ -22,7 +22,7 @@ public class ServerEntityManager : BaseEntityManager
         _udpHandler = udpHandler;
     }*/
 
-    public ServerEntityManager(IServerSessionManager serverSessionManager)
+    public ServerEntityManager(ServerSessionManager serverSessionManager)
     {
         _serverSessionManager = serverSessionManager;
     }
