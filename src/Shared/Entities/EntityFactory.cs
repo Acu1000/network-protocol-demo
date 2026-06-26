@@ -28,7 +28,6 @@ public class EntityFactory
     
     public IEntity CreateEntity(EntityType entityType, ReadOnlySpan<byte> initialState)
     {
-        GD.Print("Creating entity");
         EntitySpawnConfig? spawnConfig = _spawnConfigs.GetValueOrDefault(entityType);
 
         if (spawnConfig is null)

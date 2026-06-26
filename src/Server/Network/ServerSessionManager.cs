@@ -11,6 +11,8 @@ namespace Protocol.Server.Network;
 
 public class ServerSessionManager
 {
+    public event Action<ClientInfo> ClientConnected;
+    
     private readonly UdpHandler _serverUdpHandler;
     private readonly PacketRouter _packetRouter;
 
@@ -116,6 +118,7 @@ public class ServerSessionManager
         };
 
         _clients.Add(client);
+        ClientConnected.Invoke(client);
 
         GD.Print($"SERVER: Player {client.Username} connected as ClientId {client.ClientId}");
 
