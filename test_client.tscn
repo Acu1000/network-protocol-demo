@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_ls03f"]
 [ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_k8r2p"]
-[ext_resource type="Script" uid="uid://br6f0sjh2ftqv" path="res://src/Shared/EntityHandlers/PlayerCharacterEntityHandler.cs" id="3_ktpax"]
-[ext_resource type="Script" uid="uid://c5g6i1hk1f3l" path="res://src/Shared/EntityHandlers/BasicEnemyEntityHandler.cs" id="4_qtru5"]
 [ext_resource type="PackedScene" uid="uid://5hxlo8gdb5u4" path="res://src/Shared/Scenes/Player/BasicEnemy.tscn" id="5_64854"]
 
 [node name="TestClient" type="Node2D" unique_id=923777067]
@@ -18,16 +16,8 @@ offset_right = 55.0
 offset_bottom = 23.0
 text = "CLIENT"
 
-[node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114 node_paths=PackedStringArray("_entityHandlers")]
+[node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114 node_paths=PackedStringArray("SpawnConfigParent")]
 script = ExtResource("1_ls03f")
-_entityHandlers = [NodePath("../PlayerCharacterEntityHandler"), NodePath("../BasicEnemyEntityHandler")]
-
-[node name="PlayerCharacterEntityHandler" type="Node" parent="." unique_id=2058432297 node_paths=PackedStringArray("_characterContainer")]
-script = ExtResource("3_ktpax")
-_playerCharacterEntityPrefab = ExtResource("2_k8r2p")
-_characterContainer = NodePath("..")
-
-[node name="BasicEnemyEntityHandler" type="Node" parent="." unique_id=1979706693 node_paths=PackedStringArray("_instanceContainer")]
-script = ExtResource("4_qtru5")
-_prefab = ExtResource("5_64854")
-_instanceContainer = NodePath("..")
+SpawnConfigEntityType = Array[int]([2, 4])
+SpawnConfigPrefab = Array[PackedScene]([ExtResource("2_k8r2p"), ExtResource("5_64854")])
+SpawnConfigParent = [NodePath(".."), NodePath("..")]

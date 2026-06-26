@@ -39,11 +39,11 @@ public class ServerEntityManager : BaseEntityManager
         UpdateEntity(packet.EntityID, packet.NewStateBytes);
     }
 
-    public UInt64 AddEntityGlobal(Entity entity)
+    public UInt64 AddEntityGlobal(IEntity entity)
     {
         UInt64 id = _nextEntityId++;
         
-        AddEntityLocal(id, entity);
+        _entities.Add(id, entity);
         
         SingleEntityCreatePacket packet = new SingleEntityCreatePacket(
             id, 
@@ -54,7 +54,7 @@ public class ServerEntityManager : BaseEntityManager
 
         if (entity.NetworkOwnerId == 0)
         {
-            _entityHandlers.GetValueOrDefault(entity.EntityType)?.EntityOwnershipAcquired(id);
+            entity.OwnershipChanged(true);
         }
         
         return id;
@@ -63,7 +63,6 @@ public class ServerEntityManager : BaseEntityManager
     private void UpdateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
     {
         _entities[id].UpdateState(stateBytes);
-        UpdateEntityLocal(id, _entities[id]);
     }
 
     public void SetEntityNetworkOwner(UInt64 entityId, UInt16 newOwnerId)
@@ -74,7 +73,7 @@ public class ServerEntityManager : BaseEntityManager
             
             if (entity.NetworkOwnerId == 0)
             {
-                _entityHandlers.GetValueOrDefault(entity.EntityType)?.EntityOwnershipLost(entityId);
+                entity.OwnershipChanged(false);
             }
             
             entity.NetworkOwnerId = newOwnerId;
@@ -89,9 +88,9 @@ public class ServerEntityManager : BaseEntityManager
         foreach (var kv in _entities)
         {
             UInt64 id = kv.Key;
-            Entity entity = kv.Value;
+            IEntity entity = kv.Value;
             
-            if (entity.StateChanged())
+            if (entity.UpdateNeeded)
             {
                 SingleEntityUpdatePacket packet = new SingleEntityUpdatePacket(
                     id, 
@@ -117,8 +116,8 @@ public class ServerEntityManager : BaseEntityManager
         foreach (var kv in _entities)
         {
             UInt64 entityId = kv.Key;
-            Entity entity = kv.Value;
-
+            IEntity entity = kv.Value;
+            
             SingleEntitySnapshotPacket packet = new SingleEntitySnapshotPacket(
                 _nextSnapshotId++,
                 entityId,

@@ -1,14 +1,13 @@
+using System;
 using Godot;
 using Protocol.Shared.Entities;
 
 namespace Protocol.Shared.Scenes.Player;
 
-public partial class PlayerCharacter : CharacterBody2D
+public partial class PlayerCharacter : CharacterBody2D, IEntity
 {
 	public const float Speed = 6.0f;
-
-	public PlayerCharacterEntity Entity { get; set; }
-
+	
 	public bool Controlled { get; set; } = false;
 
 	public override void _PhysicsProcess(double delta)
@@ -38,8 +37,41 @@ public partial class PlayerCharacter : CharacterBody2D
 
         Velocity = velocity;
         MoveAndSlide();
+	}
 
-        Entity.PositionX = GlobalPosition.X;
-        Entity.PositionY = GlobalPosition.Y;
+	public EntityType EntityType => EntityType.PlayerCharacter;
+	public bool UpdateNeeded => true;
+
+	public void WriteStateTo(Span<byte> buffer)
+	{
+		BitConverter.TryWriteBytes(buffer.Slice(0, 4), Position.X);
+		BitConverter.TryWriteBytes(buffer.Slice(4, 4), Position.Y);
+	}
+
+	public byte[] GetState()
+	{
+		byte[] buffer = new byte[8];
+		WriteStateTo(buffer);
+		return buffer;
+	}
+
+	public void UpdateState(ReadOnlySpan<byte> state)
+	{
+		Position = new Vector2(
+			BitConverter.ToSingle(state.Slice(0, 4)),
+			BitConverter.ToSingle(state.Slice(4, 4))
+			);
+	}
+
+	public void Delete()
+	{
+		QueueFree();
+	}
+
+	public ushort NetworkOwnerId { get; set; }
+
+	public void OwnershipChanged(bool isOwned)
+	{
+		Controlled = isOwned;
 	}
 }

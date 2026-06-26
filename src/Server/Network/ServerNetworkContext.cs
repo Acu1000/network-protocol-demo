@@ -4,9 +4,9 @@ using System.Net;
 using System.Threading.Tasks;
 using Godot;
 using Protocol.Shared.Entities;
-using Protocol.Shared.EntityHandlers;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
+using Protocol.Shared.Scenes.Player;
 
 namespace Protocol.Server.Network;
 
@@ -16,12 +16,12 @@ public partial class ServerNetworkContext : Node
 	private readonly PacketRouter _router = new();
 	private readonly ServerSessionManager _serverSessionManager;
 	private readonly ServerEntityManager _serverEntityManager;
-
-	private SampleEntity sampleEntityC = new();
-	private SampleEntity sampleEntityS = new();
   
-	[Export] private Godot.Collections.Array<Node> _entityHandlers;
 	[Export] public double SnapshotInterval = 1.0f;
+	
+	[Export] public PlayerCharacter Char1;
+	[Export] public PlayerCharacter Char2;
+	[Export] public BasicEnemy Enemy;
 	  
 	private double _snapshotTimer;
 	  
@@ -40,28 +40,17 @@ public partial class ServerNetworkContext : Node
 		GD.Print("SERVER: ui_page_up = send Ping to all clients");
 		GD.Print("SERVER: ui_page_down = send Ping to all clients except first connected client");
 
-		_serverEntityManager.AddEntityLocal(123, sampleEntityC);
-		_serverEntityManager.AddEntityLocal(456, sampleEntityS);
-
 		_router.AddHandler(PacketType.ConnectRequest, _serverSessionManager.HandleConnectRequestPacket);
 		_router.AddHandler(PacketType.DisconnectRequest, _serverSessionManager.HandleDisconnectRequestPacket);
 		_router.AddHandler(PacketType.Ping, _serverSessionManager.HandlePingPacket);
 		_router.AddHandler(PacketType.Pong, _serverSessionManager.HandlePongPacket);
 		_router.AddHandler(PacketType.SingleEntityUpdate, _serverEntityManager.HandleSingleEntityUpdatePacket);
 
-    foreach (var handlerNode in _entityHandlers)
-    {
-        if (handlerNode is not IEntityHandler handler) throw new Exception("Node is not an entity handler");
-        _serverEntityManager.AddEntityHandler(handler.GetEntityType(), handler);
-    }
-
 		_udpHandler.StartListening();
 	}
 
 	public override void _Process(double delta)
 	{
-		sampleEntityS.Counter++;
-		
 		_serverSessionManager.Process();
 		_serverEntityManager.Process();
 
@@ -74,19 +63,18 @@ public partial class ServerNetworkContext : Node
 	    frame++;
 	    if (frame == 5)
 		{
-		  PlayerCharacterEntity character1 = new();
-		  character1.PositionX = -5.0f;
-		  var playerid1 = _serverEntityManager.AddEntityGlobal(character1);
+		  Char1.GlobalPosition = new Vector2(-5, 0);
+		  //Char1.NetworkOwnerId = 1;
+		  var playerid1 = _serverEntityManager.AddEntityGlobal(Char1);
 		  _serverEntityManager.SetEntityNetworkOwner(playerid1, 1);
 		  
-		  PlayerCharacterEntity character2 = new();
-		  character2.PositionX = 5.0f;
-		  var playerid2 = _serverEntityManager.AddEntityGlobal(character2);
+		  Char2.GlobalPosition = new Vector2(5, 0);
+		  //Char2.NetworkOwnerId = 2;
+		  var playerid2 = _serverEntityManager.AddEntityGlobal(Char2);
 		  _serverEntityManager.SetEntityNetworkOwner(playerid2, 2);
 
-		  BasicEnemyEntity enemy = new();
-		  enemy.PositionY = 5.0f;
-		  _serverEntityManager.AddEntityGlobal(enemy);
+		  Enemy.GlobalPosition = new Vector2(0, -5);
+		  _serverEntityManager.AddEntityGlobal(Enemy);
 		}
 		/*if (frame == 100)
 		{
