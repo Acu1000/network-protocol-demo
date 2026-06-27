@@ -39,7 +39,9 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
         MoveAndSlide();
 	}
 
+	public UInt64? EntityId { get; set; }
 	public EntityType EntityType => EntityType.PlayerCharacter;
+	public event Action? Deleted;
 	public bool UpdateNeeded => true;
 
 	public void WriteStateTo(Span<byte> buffer)
@@ -65,6 +67,7 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 
 	public void Delete()
 	{
+		Deleted?.Invoke();
 		QueueFree();
 	}
 
@@ -73,5 +76,10 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 	public void OwnershipChanged(bool isOwned)
 	{
 		Controlled = isOwned;
+	}
+
+	public void Die()
+	{
+		Delete();
 	}
 }

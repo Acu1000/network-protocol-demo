@@ -4,9 +4,11 @@ namespace Protocol.Shared.Entities;
 
 public interface IEntity
 {
+    public UInt64? EntityId { get; set; }   
     public EntityType EntityType { get; }
 
-
+    public event Action Deleted;
+    
     public bool UpdateNeeded { get; }
     public void WriteStateTo(Span<byte> buffer);
     public byte[] GetState();

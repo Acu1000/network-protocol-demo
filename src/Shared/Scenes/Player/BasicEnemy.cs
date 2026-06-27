@@ -6,6 +6,8 @@ namespace Protocol.Shared.Scenes.Player;
 
 public partial class BasicEnemy : CharacterBody2D, IEntity
 {
+    [Export] private Area2D KillArea; 
+    
     public const float Speed = 1.0f;
 
     public bool Controlled = false;
@@ -19,6 +21,14 @@ public partial class BasicEnemy : CharacterBody2D, IEntity
 
     private void ProcessControlled()
     {
+        foreach (var body in KillArea.GetOverlappingBodies())
+        {
+            if (body is PlayerCharacter character)
+            {
+                character.Die();
+            } 
+        }
+        
         if (Random.Shared.Next(120) == 1)
         {
             _velocity = new Vector2(
@@ -31,7 +41,9 @@ public partial class BasicEnemy : CharacterBody2D, IEntity
         MoveAndSlide();
     }
 
+    public UInt64? EntityId { get; set; }
     public EntityType EntityType => EntityType.BasicEnemy;
+    public event Action? Deleted;
     public bool UpdateNeeded => true;
     
     public void WriteStateTo(Span<byte> buffer)

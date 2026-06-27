@@ -30,7 +30,7 @@ public class ClientEntityManager : BaseEntityManager
             return;
         }
         
-        if (_entities.TryGetValue(packet.EntityID, out var entity))
+        if (TryGetEntity(packet.EntityID, out var entity))
         {
             entity.UpdateState(packet.NewStateBytes);
         }
@@ -44,15 +44,15 @@ public class ClientEntityManager : BaseEntityManager
         }
 
         // TODO: keep track of non-updated entities and delete them
-        if (_entities.TryGetValue(packet.EntityId, out var entity))
+        if (TryGetEntity(packet.EntityId, out var entity))
         {
             entity.UpdateState(packet.StateBytes);
         }
         else
         {
             // Entity does not exist; Create new
-            IEntity newEntity = _entityFactory.CreateEntity(packet.EntityType, packet.StateBytes);
-            _entities.Add(packet.EntityId, newEntity);
+            IEntity newEntity = _entityFactory.CreateEntity(packet.EntityType, packet.EntityId, packet.StateBytes);
+            AddEntityLocal(packet.EntityId, newEntity);
         }
         SetEntityOwnerLocal(packet.EntityId, packet.EntityNetworkOwnerId);
     }
@@ -60,12 +60,21 @@ public class ClientEntityManager : BaseEntityManager
     public void HandleSingleEntityCreatePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
     {
         if (!SingleEntityCreatePacket.TryParse(packetData, out SingleEntityCreatePacket packet)) return;
-        if (_entities.ContainsKey(packet.EntityId)) return;
+        if (EntityExists(packet.EntityId)) return;
         
         EntityType entityType = packet.EntityType;
+        UInt64 entityId = packet.EntityId;
 
-        IEntity entity = _entityFactory.CreateEntity(entityType, packet.InitialStateBytes);
-        _entities.Add(packet.EntityId, entity);
+        IEntity entity = _entityFactory.CreateEntity(entityType, entityId, packet.InitialStateBytes);
+        AddEntityLocal(entityId, entity);
+    }
+
+    public void HandleSingleEntityDeletePacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
+    {
+        if (!SingleEntityDeletePacket.TryParse(packetData, out SingleEntityDeletePacket packet)) return;
+        if (!EntityExists(packet.EntityId)) return;
+        
+        RemoveEntityLocal(packet.EntityId);
     }
 
     public void HandleSetEntityOwnerPacket(ReadOnlySpan<byte> packetData, EndPoint sourceEndPoint)
@@ -80,7 +89,7 @@ public class ClientEntityManager : BaseEntityManager
 
     private void SetEntityOwnerLocal(UInt64 entityId, UInt16 newOwnerId)
     {
-        if (_entities.TryGetValue(entityId, out var entity))
+        if (TryGetEntity(entityId, out var entity))
         {
             entity.NetworkOwnerId = newOwnerId;
         }
@@ -101,9 +110,7 @@ public class ClientEntityManager : BaseEntityManager
     {
         foreach (var entityId in _ownedEntities)
         {
-            IEntity? entity = _entities.GetValueOrDefault(entityId);
-
-            if (entity == null) continue;
+            if (!TryGetEntity(entityId, out IEntity entity)) continue;
 
             if (entity.UpdateNeeded)
             {

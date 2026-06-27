@@ -26,7 +26,7 @@ public class EntityFactory
         });
     }
     
-    public IEntity CreateEntity(EntityType entityType, ReadOnlySpan<byte> initialState)
+    public IEntity CreateEntity(EntityType entityType, UInt64 entityId, ReadOnlySpan<byte> initialState)
     {
         EntitySpawnConfig? spawnConfig = _spawnConfigs.GetValueOrDefault(entityType);
 
@@ -42,6 +42,7 @@ public class EntityFactory
             throw new Exception("Entity prefab does not implement IEntity");
         }
         
+        entity.EntityId = entityId;
         entity.UpdateState(initialState);
 
         Node parent = spawnConfig.Parent;

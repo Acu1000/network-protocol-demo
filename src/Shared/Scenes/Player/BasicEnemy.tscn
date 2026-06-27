@@ -6,8 +6,12 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_qb07h"]
 radius = 0.9
 
-[node name="BasicEnemy" type="CharacterBody2D" unique_id=939055418 groups=["Entity"]]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q77us"]
+size = Vector2(1.9, 1.9)
+
+[node name="BasicEnemy" type="CharacterBody2D" unique_id=939055418 node_paths=PackedStringArray("KillArea") groups=["Entity"]]
 script = ExtResource("1_q77us")
+KillArea = NodePath("KillArea")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1625906624]
 self_modulate = Color(1, 0, 0, 1)
@@ -16,3 +20,8 @@ texture = ExtResource("1_qb07h")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2084152387]
 shape = SubResource("CircleShape2D_qb07h")
+
+[node name="KillArea" type="Area2D" parent="." unique_id=755516182]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KillArea" unique_id=425679866]
+shape = SubResource("RectangleShape2D_q77us")

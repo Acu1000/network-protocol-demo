@@ -36,14 +36,18 @@ public class ServerEntityManager : BaseEntityManager
             return;
         }
         
-        UpdateEntity(packet.EntityID, packet.NewStateBytes);
+        if (TryGetEntity(packet.EntityID, out var entity))
+        {
+            entity.UpdateState(packet.NewStateBytes);
+        }
     }
 
     public UInt64 AddEntityGlobal(IEntity entity)
     {
         UInt64 id = _nextEntityId++;
+        entity.EntityId = id;
         
-        _entities.Add(id, entity);
+        AddEntityLocal(id, entity);
         
         SingleEntityCreatePacket packet = new SingleEntityCreatePacket(
             id, 
@@ -56,18 +60,32 @@ public class ServerEntityManager : BaseEntityManager
         {
             entity.OwnershipChanged(true);
         }
-        
+
+        entity.Deleted += () =>
+        {
+            if (entity.EntityId is not null)
+            {
+                DeleteEntityGlobal(entity.EntityId.Value);
+            }
+        };
+            
         return id;
-    } 
-    
-    private void UpdateEntity(UInt64 id, ReadOnlySpan<byte> stateBytes)
+    }
+
+    public void DeleteEntityGlobal(UInt64 entityId)
     {
-        _entities[id].UpdateState(stateBytes);
+        if (TryGetEntity(entityId, out var entity))
+        {
+            RemoveEntityLocal(entityId);
+            
+            SingleEntityDeletePacket packet = new SingleEntityDeletePacket(entityId);
+            _serverSessionManager.SendToAllClients(packet);
+        }
     }
 
     public void SetEntityNetworkOwner(UInt64 entityId, UInt16 newOwnerId)
     {
-        if (_entities.TryGetValue(entityId, out var entity))
+        if (TryGetEntity(entityId, out var entity))
         {
             if (entity.NetworkOwnerId == newOwnerId) return;
             
@@ -85,7 +103,7 @@ public class ServerEntityManager : BaseEntityManager
     
     public override void Process()
     {
-        foreach (var kv in _entities)
+        foreach (var kv in GetEntities())
         {
             UInt64 id = kv.Key;
             IEntity entity = kv.Value;
@@ -113,7 +131,7 @@ public class ServerEntityManager : BaseEntityManager
 
     public void SendSnapshotToAll()
     {   
-        foreach (var kv in _entities)
+        foreach (var kv in GetEntities())
         {
             UInt64 entityId = kv.Key;
             IEntity entity = kv.Value;

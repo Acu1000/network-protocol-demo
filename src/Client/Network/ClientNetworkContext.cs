@@ -51,6 +51,7 @@ public partial class ClientNetworkContext : Node
 		_router.AddHandler(PacketType.Pong, _clientSessionManager.HandlePongPacket);
 		_router.AddHandler(PacketType.SingleEntityUpdate, _clientEntityManager.HandleSingleEntityUpdatePacket);
 		_router.AddHandler(PacketType.SingleEntityCreate, _clientEntityManager.HandleSingleEntityCreatePacket);
+		_router.AddHandler(PacketType.SingleEntityDelete, _clientEntityManager.HandleSingleEntityDeletePacket);
 		_router.AddHandler(PacketType.SingleEntitySnapshot, _clientEntityManager.HandleSingleEntitySnapshotPacket);
 		_router.AddHandler(PacketType.SetEntityOwner, _clientEntityManager.HandleSetEntityOwnerPacket);
 
