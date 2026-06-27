@@ -41,6 +41,7 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 
 	public UInt64? EntityId { get; set; }
 	public EntityType EntityType => EntityType.PlayerCharacter;
+	public uint LastSnapshotId { get; set; }
 	public event Action? Deleted;
 	public bool UpdateNeeded => true;
 

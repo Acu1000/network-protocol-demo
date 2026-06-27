@@ -43,6 +43,7 @@ public partial class BasicEnemy : CharacterBody2D, IEntity
 
     public UInt64? EntityId { get; set; }
     public EntityType EntityType => EntityType.BasicEnemy;
+    public uint LastSnapshotId { get; set; }
     public event Action? Deleted;
     public bool UpdateNeeded => true;
     

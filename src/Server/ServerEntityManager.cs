@@ -15,7 +15,9 @@ public class ServerEntityManager : BaseEntityManager
     private readonly ServerSessionManager _serverSessionManager;
 
     private UInt64 _nextEntityId = 1;
-    private UInt32 _nextSnapshotId = 1;
+    
+    // Starting at 1000 to prevent underflows
+    private UInt32 _nextSnapshotId = 1000;
     
     /*public ServerEntityManager(UdpHandler udpHandler)
     {
@@ -130,14 +132,16 @@ public class ServerEntityManager : BaseEntityManager
     }
 
     public void SendSnapshotToAll()
-    {   
+    {
+        _nextSnapshotId++;
+        
         foreach (var kv in GetEntities())
         {
             UInt64 entityId = kv.Key;
             IEntity entity = kv.Value;
             
             SingleEntitySnapshotPacket packet = new SingleEntitySnapshotPacket(
-                _nextSnapshotId++,
+                _nextSnapshotId,
                 entityId,
                 entity.EntityType,
                 entity.NetworkOwnerId,

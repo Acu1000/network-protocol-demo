@@ -6,6 +6,7 @@ public interface IEntity
 {
     public UInt64? EntityId { get; set; }   
     public EntityType EntityType { get; }
+    public UInt32 LastSnapshotId { get; set; }
 
     public event Action Deleted;
     

@@ -22,4 +22,4 @@ offset_bottom = 23.0
 text = "SERVER"
 
 [node name="BasicEnemy" parent="." unique_id=939055418 instance=ExtResource("5_hhq0p")]
-position = Vector2(0, 3)
+position = Vector2(0, 6)
