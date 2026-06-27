@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using Godot;
 using Protocol.Server.Network.Models;
+using Protocol.Shared.Models;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
 
@@ -107,7 +108,11 @@ public class ServerSessionManager
         }
 
         // TODO: use cryptographically safe rng
-        UInt32 sessionToken = (UInt32)Random.Shared.NextInt64(0, UInt32.MaxValue);
+        SessionToken sessionToken = default;
+        Span<byte> sessionTokenSpan = sessionToken;
+        Random.Shared.NextBytes(sessionTokenSpan);
+        
+        GD.Print("SERVER TOKEN: ", sessionToken.ToString());
 
         ClientInfo client = new()
         {
@@ -228,7 +233,7 @@ public class ServerSessionManager
 
     private ClientInfo? ValidateClientPacketHeader(ClientPacketHeader header, IPEndPoint sourceEndPoint)
     {
-        ClientInfo? clientInfo = Clients.FirstOrDefault((info => info.SessionToken.Equals(header.SessionToken)));
+        ClientInfo? clientInfo = Clients.FirstOrDefault((info => info.ClientId == header.ClientId));
 
         if (clientInfo is null)
         {
@@ -243,19 +248,26 @@ public class ServerSessionManager
         
         return clientInfo;
     }
+
+    private bool ValidateClientPacketHash(ClientInfo clientInfo, ClientPacketHeader header, ReadOnlySpan<byte> packet)
+    {
+        Hash12 computedHash = header.ComputeHash(clientInfo.SessionToken, packet);
+        Hash12 declaredHash = header.Hash;
+
+        return computedHash.Equals(declaredHash);
+    }
     
     public void Process()
     {
         while (_serverUdpHandler.TryGetPacket(out byte[] packetWithHeader, out EndPoint? sourceEndPoint))
         {
-            // TODO: handle ConnectRequestPacket separately - it does not have this header
             if (!ClientPacketHeader.TryExtract(packetWithHeader, out ClientPacketHeader packetHeader, 
                     out ReadOnlySpan<byte> packet))
             {
                 continue;
             }
 
-            if (packetHeader.Equals(ClientPacketHeader.Zero) && packet.Length >= 1 &&
+            if (packetHeader.IsBlank && packet.Length >= 1 &&
                 packet[0] == (byte)PacketType.ConnectRequest)
             {
                 HandleConnectRequestPacket(packet, sourceEndPoint!);
@@ -266,7 +278,13 @@ public class ServerSessionManager
             
             if (clientInfo is null)
             {
-                GD.Print("VALIDATION FAILED, PACKET DROPPED");
+                GD.Print("VALIDATION FAILED (INVALID CLIENT), PACKET DROPPED");
+                continue;
+            }
+
+            if (!ValidateClientPacketHash(clientInfo, packetHeader, packet))
+            {
+                GD.Print("VALIDATION FAILED (WRONG HASH), PACKET DROPPED");
                 continue;
             }
             

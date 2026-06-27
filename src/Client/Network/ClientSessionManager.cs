@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Godot;
 using Protocol.Client.Network.Models;
+using Protocol.Shared.Models;
 using Protocol.Shared.Network;
 using Protocol.Shared.Network.Packets;
 
@@ -42,9 +43,8 @@ public class ClientSessionManager
         UInt64 loginToken = (UInt64)Random.Shared.NextInt64(1, long.MaxValue);
 
         ConnectRequestPacket packet = new(loginToken);
-        ClientPacketHeader header = ClientPacketHeader.Zero;
         
-        _udpHandler.Send(header.AppendPacket(packet.ToBytes()), endPoint);
+        _udpHandler.Send(ClientPacketHeader.AppendPacketToBlank(packet.ToBytes()), endPoint);
 
         _pendingServerEndPoint = endPoint;
         
@@ -96,9 +96,10 @@ public class ClientSessionManager
             return;
         }
 
-        ClientPacketHeader header = new ClientPacketHeader(_sessionInfo.SessionToken);
+        ClientPacketHeader header = new ClientPacketHeader(_sessionInfo.ClientId, _sessionInfo.SequenceNum);
         
-        byte[] data = header.AppendPacket(packet.ToBytes());
+        byte[] data = header.AppendPacket(_sessionInfo.SessionToken, packet.ToBytes());
+        //byte[] data = header.AppendPacket(new SessionToken(), packet.ToBytes());
         
         _udpHandler.Send(data, _sessionInfo.ServerEndPoint);
     }
@@ -123,11 +124,14 @@ public class ClientSessionManager
         }
         
         _pendingServerEndPoint = null;
+        
+        GD.Print("CLIENT TOKEN: ", packet.SessionToken.ToString());
 
         _sessionInfo = new ClientSessionInfo()
         {
             ClientId = packet.ClientId,
             SessionToken = packet.SessionToken,
+            SequenceNum = 0,
             ServerEndPoint = (IPEndPoint)sourceEndPoint,
         };
         
