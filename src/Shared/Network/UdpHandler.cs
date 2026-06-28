@@ -80,7 +80,7 @@ public class UdpHandler
 		}
 	}
 	
-	public bool TryGetPacket(out byte[] packetSpan, out EndPoint? sourceEndPoint)
+	public virtual bool TryGetPacket(out byte[] packetSpan, out EndPoint? sourceEndPoint)
 	{
 		if (!Reader.TryRead(out RawPacket rawPacket))
 		{
@@ -102,7 +102,7 @@ public class UdpHandler
 		}
 	}
 
-	public void Send(ReadOnlyMemory<byte> data, EndPoint endPoint)
+	public virtual void Send(ReadOnlyMemory<byte> data, EndPoint endPoint)
 	{
 		Task.Run(async() => await SendAsync(data, endPoint));
 	}
