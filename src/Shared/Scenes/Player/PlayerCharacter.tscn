@@ -7,9 +7,10 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bkxkx"]
 size = Vector2(1, 1)
 
-[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 node_paths=PackedStringArray("Turret") groups=["Entity"]]
+[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 node_paths=PackedStringArray("Turret", "Camera") groups=["Entity"]]
 script = ExtResource("1_hyclc")
 Turret = NodePath("Turret")
+Camera = NodePath("Camera2D")
 
 [node name="HullSprite" type="Sprite2D" parent="." unique_id=1009298803]
 self_modulate = Color(0.5609549, 0.5609549, 0.5609549, 1)
@@ -27,4 +28,5 @@ scale = Vector2(0.063, 0.063)
 texture = ExtResource("3_bkxkx")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1073976887]
+enabled = false
 zoom = Vector2(90, 90)

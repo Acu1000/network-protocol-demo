@@ -14,6 +14,7 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 	public ushort Health { get; private set; }
 
 	[Export] public Node2D Turret;
+	[Export] public Camera2D Camera;
 	
 	public bool Controlled { get; set; } = false;
 
@@ -94,7 +95,10 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 			);
 		GlobalRotation = BitConverter.ToSingle(state.Slice(8, 4));
 		Turret.GlobalRotation = BitConverter.ToSingle(state.Slice(12, 4));
-		Health = BitConverter.ToUInt16(state.Slice(16, 2));
+		if (!IsServer)
+		{
+			Health = BitConverter.ToUInt16(state.Slice(16, 2));
+		}
 	}
 
 	public void Delete()
@@ -108,6 +112,7 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 	public void OwnershipChanged(bool isOwned)
 	{
 		Controlled = isOwned;
+		Camera.Enabled = isOwned;
 	}
 
 	public void Die()
