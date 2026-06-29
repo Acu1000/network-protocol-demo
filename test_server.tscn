@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
 [ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_mt1c3"]
 [ext_resource type="PackedScene" uid="uid://frrmipwmiysw" path="res://src/Shared/Scenes/Player/Bullet.tscn" id="3_j4kmo"]
+[ext_resource type="PackedScene" uid="uid://cus0shu7w4p4n" path="res://map.tscn" id="5_7dxic"]
 [ext_resource type="PackedScene" uid="uid://5hxlo8gdb5u4" path="res://src/Shared/Scenes/Player/BasicEnemy.tscn" id="5_hhq0p"]
 
 [node name="TestServer" type="Node2D" unique_id=2032377071]
@@ -26,3 +27,5 @@ text = "SERVER"
 
 [node name="BasicEnemy" parent="." unique_id=939055418 instance=ExtResource("5_hhq0p")]
 position = Vector2(0, 6)
+
+[node name="TileMapLayer" parent="." unique_id=1728661907 instance=ExtResource("5_7dxic")]
