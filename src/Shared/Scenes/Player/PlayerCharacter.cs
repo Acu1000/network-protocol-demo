@@ -23,6 +23,12 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 	public override void _Ready()
 	{
 		Health = MaxHealth;
+
+		// For testing speed limit validation
+		/*if (!IsServer)
+		{
+			_moveSpeed *= 3.0f;
+		}*/
 	}
 
 	public override void _Process(double delta)
@@ -98,10 +104,23 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 
 	public void UpdateState(ReadOnlySpan<byte> state)
 	{
-		GlobalPosition = new Vector2(
+		Vector2 NewPos = new Vector2(
 			BitConverter.ToSingle(state.Slice(0, 4)),
 			BitConverter.ToSingle(state.Slice(4, 4))
 			);
+
+		Vector2 PosDiff = NewPos - GlobalPosition;
+
+		if (IsServer && PosDiff.Length() > _moveSpeed * (1.0f / 60.0f) * 1.1f)
+		{
+			GD.Print("EXCESSIVE SPEED DETECTED");
+			GD.Print(PosDiff.Length(), " ", _moveSpeed / 60.0f);
+			GD.Print("LIMIT: ", _moveSpeed / 60.0f);
+			PosDiff = PosDiff.Normalized() * _moveSpeed / 60.0f;
+			GD.Print(PosDiff.Length());
+		}
+		GlobalPosition += PosDiff;
+		
 		GlobalRotation = BitConverter.ToSingle(state.Slice(8, 4));
 		Turret.GlobalRotation = BitConverter.ToSingle(state.Slice(12, 4));
 		if (!IsServer)
