@@ -2,14 +2,17 @@
 
 [ext_resource type="Script" uid="uid://d0wtifucnfkhh" path="res://src/Server/Network/ServerNetworkContext.cs" id="1_5gbfo"]
 [ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_mt1c3"]
+[ext_resource type="PackedScene" uid="uid://frrmipwmiysw" path="res://src/Shared/Scenes/Player/Bullet.tscn" id="3_j4kmo"]
 [ext_resource type="PackedScene" uid="uid://5hxlo8gdb5u4" path="res://src/Shared/Scenes/Player/BasicEnemy.tscn" id="5_hhq0p"]
 
 [node name="TestServer" type="Node2D" unique_id=2032377071]
 
-[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262 node_paths=PackedStringArray("PlayerCharacterContainer")]
+[node name="ServerNetworkContext" type="Node" parent="." unique_id=1724922262 node_paths=PackedStringArray("PlayerCharacterContainer", "_bulletContainer")]
 script = ExtResource("1_5gbfo")
 PlayerCharacterPrefab = ExtResource("2_mt1c3")
 PlayerCharacterContainer = NodePath("..")
+_bulletPrefab = ExtResource("3_j4kmo")
+_bulletContainer = NodePath("..")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1299226294]
 zoom = Vector2(30, 30)

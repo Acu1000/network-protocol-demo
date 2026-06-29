@@ -7,9 +7,9 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bkxkx"]
 size = Vector2(1, 1)
 
-[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 node_paths=PackedStringArray("_turret") groups=["Entity"]]
+[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 node_paths=PackedStringArray("Turret") groups=["Entity"]]
 script = ExtResource("1_hyclc")
-_turret = NodePath("Turret")
+Turret = NodePath("Turret")
 
 [node name="HullSprite" type="Sprite2D" parent="." unique_id=1009298803]
 self_modulate = Color(0.5609549, 0.5609549, 0.5609549, 1)

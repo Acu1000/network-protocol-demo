@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b3u2vb8yvohnc" path="res://src/Client/Network/ClientNetworkContext.cs" id="1_ls03f"]
 [ext_resource type="PackedScene" uid="uid://bup8jr6x7ii6l" path="res://src/Shared/Scenes/Player/PlayerCharacter.tscn" id="2_k8r2p"]
+[ext_resource type="PackedScene" uid="uid://frrmipwmiysw" path="res://src/Shared/Scenes/Player/Bullet.tscn" id="4_64854"]
 [ext_resource type="Texture2D" uid="uid://dpulcxiu4rj15" path="res://assets/tiles.png" id="4_qtru5"]
 [ext_resource type="PackedScene" uid="uid://5hxlo8gdb5u4" path="res://src/Shared/Scenes/Player/BasicEnemy.tscn" id="5_64854"]
 
@@ -30,9 +31,9 @@ text = "CLIENT"
 
 [node name="ClientNetworkContext" type="Node" parent="." unique_id=1867997114 node_paths=PackedStringArray("SpawnConfigParent")]
 script = ExtResource("1_ls03f")
-SpawnConfigEntityType = Array[int]([2, 4])
-SpawnConfigPrefab = Array[PackedScene]([ExtResource("2_k8r2p"), ExtResource("5_64854")])
-SpawnConfigParent = [NodePath(".."), NodePath("..")]
+SpawnConfigEntityType = Array[int]([2, 4, 3])
+SpawnConfigPrefab = Array[PackedScene]([ExtResource("2_k8r2p"), ExtResource("5_64854"), ExtResource("4_64854")])
+SpawnConfigParent = [NodePath(".."), NodePath(".."), NodePath("..")]
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=938270571]
 scale = Vector2(0.063, 0.063)

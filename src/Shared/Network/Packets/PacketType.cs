@@ -20,4 +20,5 @@ public enum PacketType : byte
     SetEntityOwner = 0x15,
     
     // RPC
+    RemoteProcedureCall = 0x21
 }

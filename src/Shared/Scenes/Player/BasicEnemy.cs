@@ -41,6 +41,7 @@ public partial class BasicEnemy : CharacterBody2D, IEntity
         MoveAndSlide();
     }
 
+    public bool IsServer { get; set; }
     public UInt64? EntityId { get; set; }
     public EntityType EntityType => EntityType.BasicEnemy;
     public uint LastSnapshotId { get; set; }

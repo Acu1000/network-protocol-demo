@@ -50,6 +50,7 @@ public class ServerEntityManager : BaseEntityManager
         entity.EntityId = id;
         
         AddEntityLocal(id, entity);
+        entity.IsServer = true;
         
         SingleEntityCreatePacket packet = new SingleEntityCreatePacket(
             id, 

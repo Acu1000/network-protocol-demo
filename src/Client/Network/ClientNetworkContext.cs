@@ -20,6 +20,7 @@ public partial class ClientNetworkContext : Node
 
 	private readonly ClientEntityManager _clientEntityManager;
 	private readonly ClientSessionManager _clientSessionManager;
+	private readonly ClientRemoteProcedureManager _clientRemoteProcedureManager;
 	private readonly EntityFactory _entityFactory;
 	
 	[Export] public String ServerEndPoint = "127.0.0.1";
@@ -37,6 +38,7 @@ public partial class ClientNetworkContext : Node
 		_clientSessionManager = new ClientSessionManager(_udpHandler);
 		_entityFactory = new EntityFactory();
 		_clientEntityManager = new ClientEntityManager(_clientSessionManager, _entityFactory);
+		_clientRemoteProcedureManager = new ClientRemoteProcedureManager(_clientSessionManager);
 	}
 
 	public override void _Ready()

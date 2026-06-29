@@ -4,6 +4,7 @@ namespace Protocol.Shared.Entities;
 
 public interface IEntity
 {
+    public bool IsServer { get; set; }
     public UInt64? EntityId { get; set; }   
     public EntityType EntityType { get; }
     public UInt32 LastSnapshotId { get; set; }
