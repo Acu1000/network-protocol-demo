@@ -15,6 +15,8 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 
 	[Export] public Node2D Turret;
 	[Export] public Camera2D Camera;
+	[Export] public Node2D HealthBarBar;
+	[Export] public Node2D HealthBar;
 	
 	public bool Controlled { get; set; } = false;
 
@@ -22,7 +24,14 @@ public partial class PlayerCharacter : CharacterBody2D, IEntity
 	{
 		Health = MaxHealth;
 	}
-	
+
+	public override void _Process(double delta)
+	{
+		HealthBar.GlobalRotation = 0;
+		HealthBarBar.Scale = new Vector2((float)Health / MaxHealth, 1.0f);
+		HealthBarBar.Position = new Vector2(0.5f * Health / MaxHealth - 0.5f, 0.0f);
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
 		if (Controlled) ProcessControls(delta);
