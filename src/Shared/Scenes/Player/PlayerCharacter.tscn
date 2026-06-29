@@ -1,17 +1,30 @@
 [gd_scene format=3 uid="uid://bup8jr6x7ii6l"]
 
-[ext_resource type="Texture2D" uid="uid://bxr4osy0qfw7v" path="res://icon.svg" id="1_1lgyq"]
 [ext_resource type="Script" uid="uid://cdxfabd2j8xb6" path="res://src/Shared/Scenes/Player/PlayerCharacter.cs" id="1_hyclc"]
+[ext_resource type="Texture2D" uid="uid://n1qcabmcbkh0" path="res://assets/tank_hull.png" id="2_hyclc"]
+[ext_resource type="Texture2D" uid="uid://51xde8ibkkt0" path="res://assets/tank_turret.png" id="3_bkxkx"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_1lgyq"]
-radius = 1.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bkxkx"]
+size = Vector2(1, 1)
 
-[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 groups=["Entity"]]
+[node name="PlayerCharacter" type="CharacterBody2D" unique_id=1072256053 node_paths=PackedStringArray("_turret") groups=["Entity"]]
 script = ExtResource("1_hyclc")
+_turret = NodePath("Turret")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1009298803]
-scale = Vector2(0.016, 0.016)
-texture = ExtResource("1_1lgyq")
+[node name="HullSprite" type="Sprite2D" parent="." unique_id=1009298803]
+self_modulate = Color(0.5609549, 0.5609549, 0.5609549, 1)
+scale = Vector2(0.063, 0.063)
+texture = ExtResource("2_hyclc")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1297678949]
-shape = SubResource("CircleShape2D_1lgyq")
+shape = SubResource("RectangleShape2D_bkxkx")
+
+[node name="Turret" type="Node2D" parent="." unique_id=346402696]
+
+[node name="TurretSprite" type="Sprite2D" parent="Turret" unique_id=1745993874]
+rotation = 1.5707964
+scale = Vector2(0.063, 0.063)
+texture = ExtResource("3_bkxkx")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1073976887]
+zoom = Vector2(90, 90)
